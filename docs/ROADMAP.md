@@ -18,22 +18,26 @@
 
 | 任务 | 内容 |
 |---|---|
-| T006 | RDS PostgreSQL 元数据库（DolphinScheduler、Superset、dwller 分库） |
+| T006 | RDS PostgreSQL 元数据库（DolphinScheduler、Superset、dwlle 分库） |
 | T007 | App 节点与 DolphinScheduler（验证 JDBC registry，ARCHITECTURE Q2） |
 | T008 | StarRocks 异步任务包装（提交后轮询，直到完成） |
 | T009 | Superset 部署（SQL Lab 作为过渡 IDE）并连接 StarRocks |
 | T010 | 数据接入示例：JDBC Catalog 同步 MySQL，`FILES()` 导入文件 |
 
-## 阶段 3：dwller 产品层与 Agent（第 3 个月）
+## 阶段 3：dwlle 产品层与 Agent（第 3 个月）
+
+顺序说明：先打通调度页和失败诊断，再做自研 IDE。这样 IDE 完成前，失败诊断就能在 dwlle-web 上线（ADR-0008）。
 
 | 任务 | 内容 |
 |---|---|
-| T011 | dwller-api 骨架与认证方案（ARCHITECTURE Q5） |
-| T012 | 自研 SQL IDE 首版 |
-| T013 | sqlglot 血缘解析与数据地图 |
+| T011 | dwlle-api 骨架与认证方案（ARCHITECTURE Q5） |
+| T012 | DS client 与同步：API 封装、契约测试、按 DS code 挂元数据（ADR-0008） |
+| T013 | dwlle-web 调度页：任务列表、运行实例、重跑、DS 深链接跳转 |
 | T014 | Agent 工具层（MCP）与 AgentCore 接入（ARCHITECTURE Q3/Q4） |
-| T015 | NL2SQL，并建立评测集 |
-| T016 | 任务失败诊断 agent |
+| T015 | 任务失败诊断 agent（入口在 T013 的运行实例页） |
+| T016 | 自研 SQL IDE 首版，含"查询一键发布为定时任务" |
+| T017 | sqlglot 血缘解析与数据地图 |
+| T018 | NL2SQL，并建立评测集 |
 
 ## 每个任务的流程
 

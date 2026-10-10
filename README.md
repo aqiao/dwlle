@@ -1,4 +1,4 @@
-# dwller · 对味
+# dwlle · 对味
 
 部署在客户自己 AWS 账号里的 AI 原生数据开发平台。目标是让中小企业在 AWS 上获得接近 DataWorks / DataArts 的一站式体验：接入数据 → 开发 → 调度 → 查询 → 看板，并由 AI agent 降低每一步的门槛。
 

@@ -14,10 +14,10 @@
 - 只在卷上没有文件系统时才格式化（xfs）。挂载到 `/data`，fstab 中使用 UUID 并加上 `nofail`。
 
 ### D2. 使用 FQDN 模式，保证替换后节点身份不变
-- 创建 Route 53 私有托管区 `<envName>.dwller.internal`，关联到 VPC。添加 A 记录 `starrocks-0.<envName>.dwller.internal`，指向实例的私有 IP。
+- 创建 Route 53 私有托管区 `<envName>.dwlle.internal`，关联到 VPC。添加 A 记录 `starrocks-0.<envName>.dwlle.internal`，指向实例的私有 IP。
 - 实例启动时设置自己的 hostname 为这个 FQDN。FE 以 `--host_type FQDN` 启动，BE 也用 FQDN 注册。
 - 原因：实例替换后私有 IP 会变。如果 FE 元数据里记的是 IP，旧的 BE 就会失联。完整的替换演练放在 T004 验证。
-- 把 SSM 参数 `/dwller/<env>/starrocks/endpoint` 的值设为 `<fqdn>:9030`。
+- 把 SSM 参数 `/dwlle/<env>/starrocks/endpoint` 的值设为 `<fqdn>:9030`。
 
 ### D3. 单节点必需的配置
 - `fe.conf` 中设置 `default_replication_num = 1`。否则建表会因为副本数不足而失败。
@@ -37,9 +37,9 @@
 | 账号 | 用途 | 权限 | 资源组 | `query_timeout` |
 |---|---|---|---|---|
 | root | 仅用于初始化和运维 | 全部 | — | 默认 |
-| `dwller_etl` | DolphinScheduler 任务 | `default_catalog` 下所有库的读写和建表权限 | `rg_etl` | 3600 |
-| `dwller_adhoc` | IDE / Superset | `default_catalog` 下所有表的 SELECT | `rg_adhoc` | 300 |
-| `dwller_agent_ro` | Agent 工具层 | 所有表的 SELECT | `rg_adhoc` | 60 |
+| `dwlle_etl` | DolphinScheduler 任务 | `default_catalog` 下所有库的读写和建表权限 | `rg_etl` | 3600 |
+| `dwlle_adhoc` | IDE / Superset | `default_catalog` 下所有表的 SELECT | `rg_adhoc` | 300 |
+| `dwlle_agent_ro` | Agent 工具层 | 所有表的 SELECT | `rg_adhoc` | 60 |
 
 资源组：
 - `rg_etl`：`mem_limit` 50%，`concurrency_limit` 4，开启 spill
@@ -52,12 +52,12 @@
 注意：StarRocks 各版本的资源组参数名有变化（比如 `cpu_core_limit` 和 `cpu_weight`）。**请以 `versions.json` 中锁定版本的官方文档为准**，并在交付说明中列出最终采用的 SQL。
 
 ### D5. 密码
-- CDK 为 root 和上述三个账号各创建一个 Secrets Manager secret：`dwller/<env>/starrocks/<user>`。值为 JSON：`{"username","password","host","port"}`。密码用 `generateSecretString` 生成，设置 `excludePunctuation: true`，避免 shell 和 SQL 转义问题。
+- CDK 为 root 和上述三个账号各创建一个 Secrets Manager secret：`dwlle/<env>/starrocks/<user>`。值为 JSON：`{"username","password","host","port"}`。密码用 `generateSecretString` 生成，设置 `excludePunctuation: true`，避免 shell 和 SQL 转义问题。
 - 实例运行时通过 AWS CLI 读取密码。密码不得出现在 user data、日志或 CloudFormation 参数中。
 
 ## 范围
 
-### 1. `StarRocksStack`（`Dwller-<env>-StarRocks`）
+### 1. `StarRocksStack`（`Dwlle-<env>-StarRocks`）
 props 接收 NetworkStack 的 `vpc`、`starRocksSg`，以及 StorageStack 的 artifacts、backup 两个 bucket。
 
 - EC2 实例：
@@ -89,7 +89,7 @@ props 接收 NetworkStack 的 `vpc`、`starRocksSg`，以及 StorageStack 的 ar
 - `bootstrap.sh`：初始化账号、权限、资源组和查询队列（D4、D5）。
   - 必须可以重复执行：已经存在的对象，要么跳过，要么 ALTER 成目标状态。
   - root 首次登录时密码为空，要先设置为 secret 中的值；之后一律用 secret 中的密码登录。
-- 所有日志以 `[dwller]` 为前缀，同时输出到 `/var/log/dwller/` 和 journald。
+- 所有日志以 `[dwlle]` 为前缀，同时输出到 `/var/log/dwlle/` 和 journald。
 
 ### 3. 测试（`infra/test/starrocks.test.ts`）
 需要断言：
@@ -109,10 +109,10 @@ props 接收 NetworkStack 的 `vpc`、`starRocksSg`，以及 StorageStack 的 ar
 ## 验收标准
 1. AGENTS.md §5 中的命令全部通过。
 2. 在一个真实环境中部署成功（写明是 dev-global 还是 dev-cn），并完成以下验证：
-   - 通过 SSM 端口转发连接 9030，用 `dwller_etl` 登录，建表并写入 1000 行数据
+   - 通过 SSM 端口转发连接 9030，用 `dwlle_etl` 登录，建表并写入 1000 行数据
    - `SHOW BACKENDS` 显示 Alive=true，且 Host 为 FQDN
    - `SHOW RESOURCE GROUPS ALL` 能看到 `rg_etl` 和 `rg_adhoc`，参数与 D4 一致
-   - `dwller_adhoc` 可以查询，但执行 `CREATE TABLE` 失败；`dwller_agent_ro` 同理
+   - `dwlle_adhoc` 可以查询，但执行 `CREATE TABLE` 失败；`dwlle_agent_ro` 同理
    - 重启实例后服务自动恢复，数据仍在
    - 手动再执行一次 `install.sh`，没有报错，状态也没有变化
 3. 回答 ARCHITECTURE Q1：arm64 版本是否正常工作。如果有问题，附上现象描述，并改用 x86 配置完成验收。

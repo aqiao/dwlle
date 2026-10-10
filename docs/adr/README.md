@@ -11,6 +11,7 @@
 | [0005](0005-agent-architecture.md) | Agent：AgentCore + 模型抽象 + 只经 API 工具访问数据 | 已接受 |
 | [0006](0006-offline-artifacts.md) | 部署时不从公网下载，所有安装包走 artifacts bucket | 已接受 |
 | [0007](0007-tech-stack.md) | 技术栈：CDK TS / Python FastAPI / React TS | 已接受 |
+| [0008](0008-scheduler-ui-split.md) | 调度界面：dwlle-web 做主路径，DS 原生界面做进阶运维 | 已接受 |
 
 模板：
 

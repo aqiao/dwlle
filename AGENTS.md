@@ -15,11 +15,11 @@
 ## 2. 仓库结构
 
 ```
-dwller/
+dwlle/
 ├── AGENTS.md
 ├── versions.json              # 所有第三方组件的版本与 sha256（ADR-0006）
 ├── infra/                     # CDK 应用（TypeScript）
-│   ├── bin/dwller.ts
+│   ├── bin/dwlle.ts
 │   ├── config/<env>.json      # 环境配置，如 dev-global.json、dev-cn.json
 │   ├── lib/config/            # 配置类型、加载与校验
 │   ├── lib/stacks/            # 每个 Stack 一个文件
@@ -62,7 +62,7 @@ dwller/
 
 ### 3.5 脚本
 - Shell 脚本以 `set -euo pipefail` 开头，必须**幂等**（重复执行结果一致）。
-- 关键步骤输出日志，并以 `[dwller]` 为前缀，方便在 CloudWatch 中检索。
+- 关键步骤输出日志，并以 `[dwlle]` 为前缀，方便在 CloudWatch 中检索。
 
 ## 4. 代码风格
 
@@ -71,8 +71,8 @@ dwller/
 - 代码注释用英文，文档用中文。
 - 命名：
   - 资源 ID 用 PascalCase
-  - Stack 命名为 `Dwller-<envName>-<Name>`，例如 `Dwller-dev-cn-Network`
-  - 所有资源打上 `Project=dwller`、`Env=<envName>` 标签
+  - Stack 命名为 `Dwlle-<envName>-<Name>`，例如 `Dwlle-dev-cn-Network`
+  - 所有资源打上 `Project=dwlle`、`Env=<envName>` 标签
 
 ## 5. 测试与验收（每个任务都必须通过）
 

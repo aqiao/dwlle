@@ -38,12 +38,12 @@ stage-artifacts upload   --env dev-cn [--profile <aws-profile>] [--component ...
   - 这个子命令可以在任何能访问公网的机器上运行。
 - **upload**：
   - 从 `infra/config/<env>.json` 读取 region。
-  - 从 SSM 参数 `/dwller/<env>/bucket/artifacts` 读取 bucket 名称。
+  - 从 SSM 参数 `/dwlle/<env>/bucket/artifacts` 读取 bucket 名称。
   - 上传到 `s3://<bucket>/components/<component>/<version>/<arch>/<filename>`，并把 sha256 写入对象 metadata `x-amz-meta-sha256`。
   - 对象已存在且 metadata 中的 sha256 一致时，跳过上传。
   - 大文件使用分段上传（boto3 的 `upload_file` 默认支持）。
 - 中国区的使用场景：先在一台能访问公网的机器上执行 `download`，再用中国区的凭证 `--profile` 执行 `upload`。整个过程只涉及本地文件中转，不做跨分区的 S3 复制。
-- 输出日志以 `[dwller]` 为前缀；任何失败都以非 0 状态退出。
+- 输出日志以 `[dwlle]` 为前缀；任何失败都以非 0 状态退出。
 - 把 `.artifacts-cache/` 加入 `.gitignore`。
 
 ### 3. 供 CDK 使用的辅助函数

@@ -16,7 +16,7 @@
 用 zod 定义并校验以下 schema。CDK 启动时通过 `-c env=<name>` 读取 `infra/config/<name>.json`；不传参数或文件不存在时，报错并退出。
 
 ```ts
-interface DwllerConfig {
+interface DwlleConfig {
   envName: string;                 // 例如 "dev-cn"，只允许 [a-z0-9-]
   account: string;                 // 12 位数字
   region: string;
@@ -41,7 +41,7 @@ interface DwllerConfig {
   - `config/dev-cn.json`：cn-northwest-1，AZ 为 cn-northwest-1a / cn-northwest-1b
   - 两者的 `account` 都用占位值 `"000000000000"`，并在 README 中说明如何替换。
 
-### 3. `NetworkStack`（`Dwller-<env>-Network`）
+### 3. `NetworkStack`（`Dwlle-<env>-Network`）
 - VPC：使用配置中的 CIDR 和 AZ（直接传 `availabilityZones`，不使用 `maxAzs`，避免 lookup）。
   - 子网：public /24 ×2，private-with-egress /22 ×2
   - NAT Gateway 数量取自 `natGateways`；为 0 时，私有子网改为 `PRIVATE_ISOLATED`
@@ -52,7 +52,7 @@ interface DwllerConfig {
   - 两个安全组的出站都保持默认
 - 以 public readonly 属性暴露：`vpc`、`appSg`、`starRocksSg`。
 
-### 4. `StorageStack`（`Dwller-<env>-Storage`）
+### 4. `StorageStack`（`Dwlle-<env>-Storage`）
 创建三个 bucket，**不指定 bucketName**，由 CDK 生成名称，避免全局重名：
 
 | ID | 用途 | 版本控制 | 生命周期 |
@@ -66,12 +66,12 @@ interface DwllerConfig {
   - `BackupBucket` 和 `LandingBucket` 遵循配置
   - `ArtifactsBucket` 固定使用 `RETAIN`
   - 只有配置为 `destroy` 时，才允许开启 `autoDeleteObjects`
-- 把三个 bucket 的名称写入 SSM 参数：`/dwller/<envName>/bucket/{artifacts,backup,landing}`。
+- 把三个 bucket 的名称写入 SSM 参数：`/dwlle/<envName>/bucket/{artifacts,backup,landing}`。
 
-### 5. `bin/dwller.ts`
+### 5. `bin/dwlle.ts`
 - 加载配置，按顺序创建 NetworkStack 和 StorageStack。
 - `env` 使用配置中的 account 和 region。
-- 用 `Tags.of(app)` 打上标签：`Project=dwller`、`Env=<envName>`，以及配置中的 `tags`。
+- 用 `Tags.of(app)` 打上标签：`Project=dwlle`、`Env=<envName>`，以及配置中的 `tags`。
 
 ### 6. 测试（`infra/test/`）
 - `config.test.ts` 需覆盖以下场景：

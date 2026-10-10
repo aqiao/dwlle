@@ -1,4 +1,4 @@
-# dwller 架构设计
+# dwlle 架构设计
 
 版本：v0.1（2026-10-09） · 状态：草案
 
@@ -27,8 +27,8 @@
 │  私有子网                                                          │
 │  ┌──────────────────────────────┐   ┌──────────────────────────┐  │
 │  │ App 节点（EC2, docker compose）│   │ StarRocks 节点（EC2）     │  │
-│  │  - dwller-web  (React)        │   │  - FE + BE 同机部署       │  │
-│  │  - dwller-api  (FastAPI)      │──▶│  - 数据：EBS gp3（独立卷） │  │
+│  │  - dwlle-web  (React)        │   │  - FE + BE 同机部署       │  │
+│  │  - dwlle-api  (FastAPI)      │──▶│  - 数据：EBS gp3（独立卷） │  │
 │  │  - DolphinScheduler           │   │  - MySQL 协议 :9030       │  │
 │  │    (api/master/worker/alert)  │   └────────────┬─────────────┘  │
 │  │  - Superset                   │                │ BACKUP        │
@@ -38,7 +38,7 @@
 │  ┌──────────────────────────────┐       │  - backup bucket      │  │
 │  │ RDS PostgreSQL（元数据库）     │       │  - artifacts bucket   │  │
 │  │  db: dolphinscheduler/superset│       │  - landing bucket     │  │
-│  │      /dwller                  │       └──────────────────────┘  │
+│  │      /dwlle                  │       └──────────────────────┘  │
 │  └──────────────────────────────┘                                 │
 │                                                                   │
 │  公有子网：NAT Gateway ×1     S3 Gateway Endpoint（免费）            │
@@ -54,11 +54,11 @@
 | 组件 | 选型 | 部署 | 说明 | ADR |
 |---|---|---|---|---|
 | 分析引擎 | StarRocks（存算一体） | 独立 EC2，Graviton 优先 | 数据放 EBS gp3，查询不走 S3 | 0002 |
-| 调度 | Apache DolphinScheduler 3.x | App 节点 docker compose | 注册中心优先用 JDBC registry，避免 ZooKeeper（待验证） | 0003 |
+| 调度 | Apache DolphinScheduler 3.x | App 节点 docker compose | 注册中心优先用 JDBC registry，避免 ZooKeeper（待验证）；主路径界面由 dwlle-web 提供，原生界面用于进阶运维 | 0003, 0008 |
 | SQL IDE | 过渡：Superset SQL Lab；之后：自研（Monaco） | App 节点 | 不使用 Hue | 0004 |
-| BI 看板 | Apache Superset | App 节点 | 长期保留，通过 Embedded SDK 嵌入 dwller-web | 0004 |
-| 元数据库 | RDS PostgreSQL（小规格） | 托管 | DS / Superset / dwller 共用实例、分库 | 0003 |
-| AI Agent | Bedrock AgentCore + 模型抽象层 | 托管 | Agent 只能通过 dwller-api 暴露的工具访问数据 | 0005 |
+| BI 看板 | Apache Superset | App 节点 | 长期保留，通过 Embedded SDK 嵌入 dwlle-web | 0004 |
+| 元数据库 | RDS PostgreSQL（小规格） | 托管 | DS / Superset / dwlle 共用实例、分库 | 0003 |
+| AI Agent | Bedrock AgentCore + 模型抽象层 | 托管 | Agent 只能通过 dwlle-api 暴露的工具访问数据 | 0005 |
 | 后端 | Python 3.12 + FastAPI | App 节点 | Python 便于复用 sqlglot、agent SDK | 0007 |
 | 前端 | React + TypeScript + Monaco | App 节点 | | 0007 |
 | IaC | AWS CDK（TypeScript） | — | 同一代码同时支持 aws / aws-cn | 0001 |
@@ -80,14 +80,15 @@ StarRocks 存算一体模式下，内表元数据由 StarRocks FE 自己管理�
 ## 4. 自研部分（产品价值所在）
 
 1. **StarRocks 任务类型（DS 插件或包装脚本）**：提交异步作业（Broker Load、`SUBMIT TASK`、物化视图刷新）后轮询 `information_schema` 直至完成，再向 DS 回报成功/失败。
-2. **血缘**：用 sqlglot（StarRocks 方言）解析 DS 任务中的 SQL，生成表级 / 字段级血缘，存于 dwller 库。
+2. **血缘**：用 sqlglot（StarRocks 方言）解析 DS 任务中的 SQL，生成表级 / 字段级血缘，存于 dwlle 库。
 3. **数据质量**：基于 SQL 的规则（非空、唯一、阈值、波动），在 StarRocks 内执行，可作为 DS 任务节点。
 4. **SQL IDE**：编辑、结果网格、库表树、历史、"查询一键转调度任务"。
 5. **Agent 能力**：NL2SQL、ETL/DAG 生成、任务失败诊断（汇总 DS 日志 + StarRocks profile）。
+6. **DS client 与调度页**：dwlle-api 中唯一调用 DS API 的模块（锁版本、契约测试），按 DS code 挂 dwlle 元数据；dwlle-web 提供任务列表、运行实例、重跑和深链接跳转（ADR-0008）。
 
 ## 5. Agent 安全模型
 
-- Agent **不直连数据库**。所有数据访问经由 dwller-api 暴露的工具（通过 AgentCore Gateway 以 MCP 形式提供）。
+- Agent **不直连数据库**。所有数据访问经由 dwlle-api 暴露的工具（通过 AgentCore Gateway 以 MCP 形式提供）。
 - 工具层强制：只读账号执行 ad hoc 查询；结果行数上限；超时；写操作（建表、建任务）只生成草稿，必须由用户在 UI 确认后执行。
 - 模型抽象层：统一接口 `ModelProvider`，实现 `bedrock`（Global：Claude）与 `openai_compatible`（国内模型）。由部署配置选择。
 
@@ -112,7 +113,7 @@ StarRocks 存算一体模式下，内表元数据由 StarRocks FE 自己管理�
 | 实例规格 | Graviton 机型在各区可用性不同，实例类型必须可配置，并在 synth 时校验 |
 | 模型 | Global：Bedrock Claude；aws-cn：国内模型（经 NAT 访问公网 API 或当地可用的托管模型） |
 | 公网访问 | 中国区对外提供 Web 服务需 ICP 备案。MVP 只提供私网访问：SSM 端口转发 / 客户 VPN |
-| 认证 | Cognito 在中国区可用性需确认；MVP 采用 dwller 自有账号体系（待定，见 §9） |
+| 认证 | Cognito 在中国区可用性需确认；MVP 采用 dwlle 自有账号体系（待定，见 §9） |
 
 ## 8. 运维与可靠性（MVP 级别）
 
@@ -129,7 +130,8 @@ StarRocks 存算一体模式下，内表元数据由 StarRocks FE 自己管理�
 |---|---|---|---|
 | Q1 | StarRocks 官方 ARM64 二进制是否满足生产使用？否则回退 x86（r7i） | T003 验证 | — |
 | Q2 | DS 3.x JDBC registry 是否稳定，可否完全去掉 ZooKeeper | T007 验证 | — |
-| Q3 | AgentCore Runtime 访问私有 VPC 内 dwller-api 的方式 | 设计 | 阶段 3 前 |
+| Q3 | AgentCore Runtime 访问私有 VPC 内 dwlle-api 的方式 | 设计 | 阶段 3 前 |
 | Q4 | 中国区可用的模型清单与调用方式 | 用户确认 | 阶段 3 前 |
 | Q5 | 用户认证方案（自有账号 / Keycloak / Cognito） | 设计 | 阶段 2 前 |
 | Q6 | NAT Gateway 成本是否需要换 NAT 实例选项 | 成本测算后 | — |
+| Q7 | DS 3.x 是否支持 OIDC/OAuth2 登录，能否与 dwlle 单点登录 | T007 验证 | — |
