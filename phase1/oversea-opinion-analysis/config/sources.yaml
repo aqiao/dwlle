@@ -1,0 +1,29 @@
+# 海外新闻媒体数据源
+# name: 来源标识(写入 StarRocks source 列)
+# rss_url: RSS/Atom 订阅地址,用于发现文章
+# language: 正文主要语言
+sources:
+  - name: bbc_world
+    rss_url: https://feeds.bbci.co.uk/news/world/rss.xml
+    language: en
+  - name: cnn_top
+    rss_url: http://rss.cnn.com/rss/edition.rss
+    language: en
+  - name: reuters_world
+    rss_url: https://feeds.reuters.com/reuters/worldNews
+    language: en
+  - name: nyt_home
+    rss_url: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+    language: en
+  - name: guardian_world
+    rss_url: https://www.theguardian.com/world/rss
+    language: en
+  - name: aljazeera
+    rss_url: https://www.aljazeera.com/xml/rss/all.xml
+    language: en
+  - name: npr_top
+    rss_url: https://feeds.npr.org/1001/rss.xml
+    language: en
+  - name: ap_top
+    rss_url: https://apnews.com/rss
+    language: en
