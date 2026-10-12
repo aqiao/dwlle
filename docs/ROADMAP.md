@@ -12,7 +12,13 @@
 - 分析：AWS Bedrock 上的 Kimi 模型做摘要 / 情感 / 话题分析，结果写回 StarRocks
 - 交付：中文 Markdown 日报 + 客户侧 Amazon Quick Suite 仪表盘（MySQL 协议连 StarRocks，读 BI 视图）
 
-当前状态：采集 → 入仓 → LLM 分析 → 日报 的闭环代码已完成，待服务器部署验证。后续迭代方向：社交媒体数据源（X/Reddit/YouTube）、报告自动分发、监控告警。
+当前状态：采集 → 入仓 → LLM 分析 → 日报 的闭环代码已完成，待服务器部署验证。
+
+任务单：
+- [OA001 部署前修复](tasks/OA001-predeploy-fixes.md)（LLM 响应解析、断线重连、时区统一、话题视图、投递确认）
+- [OA002 数据质量](tasks/OA002-data-quality.md)（失败重试上限、正文提取、数据源清理），依赖 OA001
+
+后续迭代方向：社交媒体数据源（X/Reddit/YouTube）、报告自动分发、监控告警。
 
 以下 dwlle 路线图在此项目稳定后继续。
 
