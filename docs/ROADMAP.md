@@ -1,6 +1,20 @@
 # 路线图
 
-前提：每天约 2 小时。编码由 Kimi Code 完成，设计与评审由 Claude 负责。
+前提：每天约 2 小时。编码由 Kimi 完成，设计与评审由 Claude 负责。
+
+## 当前优先：oversea-opinion-analysis（实际客户项目）
+
+在 dwlle 各阶段任务之前，优先完成 `phase1/oversea-opinion-analysis/` —— 一个真实的客户项目：监控海外舆情，采集海外主要新闻媒体的热点信息，经 LLM 汇总分析后交付日报和仪表盘。以此项目为入手点，跑通后不断细化，其技术组件（Kafka → StarRocks 管道、LLM 分析、StarRocks 数据建模）也将反哺 dwlle 的后续设计。
+
+技术架构：
+- 采集：海外媒体 RSS + 正文抓取（requests），写入 Kafka
+- 入仓：Kafka 消费攒批，Stream Load 写入 StarRocks（主键模型幂等）
+- 分析：AWS Bedrock 上的 Kimi 模型做摘要 / 情感 / 话题分析，结果写回 StarRocks
+- 交付：中文 Markdown 日报 + 客户侧 Amazon Quick Suite 仪表盘（MySQL 协议连 StarRocks，读 BI 视图）
+
+当前状态：采集 → 入仓 → LLM 分析 → 日报 的闭环代码已完成，待服务器部署验证。后续迭代方向：社交媒体数据源（X/Reddit/YouTube）、报告自动分发、监控告警。
+
+以下 dwlle 路线图在此项目稳定后继续。
 
 ## 阶段 1：引擎与基准测试（第 1 个月）
 
