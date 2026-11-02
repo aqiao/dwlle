@@ -677,3 +677,116 @@ svg { flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* Readability */
+body { font-size: 14px; }
+.nav-item { font-size: 14px; }
+.nav-label { font-size: 11px; }
+.workspace-switcher strong, .sidebar-user strong { font-size: 13px; }
+.workspace-switcher span, .sidebar-user span { font-size: 11px; }
+.help-card strong { font-size: 12px; }
+.help-card p, .help-card button { font-size: 11px; }
+.breadcrumb { font-size: 13px; }
+.global-search input { font-size: 12px; }
+.global-search kbd, .button kbd { font-size: 10px; }
+.tag, .status-badge { font-size: 11px; }
+.eyebrow { font-size: 11px; }
+.page-header p { font-size: 13px; }
+.button-medium { font-size: 12px; }
+.button-small { font-size: 11px; }
+.card-header h2 { font-size: 16px; }
+.card-header p { font-size: 12px; }
+.metric-label { font-size: 13px; }
+.metric-note { font-size: 11px; }
+.segmented button, .chart-legend, .chart-y-labels, .chart-x-labels { font-size: 10px; }
+.resource-item span, .resource-item strong { font-size: 12px; }
+.resource-item small, .cost-note { font-size: 11px; }
+.data-table { font-size: 12px; }
+.data-table th { font-size: 11px; }
+.compact-table td, .compact-table th { padding-top: 14px; padding-bottom: 14px; }
+.ai-insight-card > h2 { font-size: 16px; }
+.ai-insight-card > p, .insight-item p, .insight-item button { font-size: 11px; }
+.insight-item strong { font-size: 12px; }
+.ai-disclaimer { font-size: 10px; }
+.quick-links, .quick-links button { font-size: 11px; }
+.summary-strip p { font-size: 12px; }
+.summary-strip strong { font-size: 21px; }
+.table-search input, .list-toolbar select, .toolbar-right, .muted-text { font-size: 12px; }
+.pipeline-name-cell strong { font-size: 13px; }
+.pipeline-name-cell small, .pipeline-cell small { font-size: 11px; }
+.pipeline-name-cell .tag { font-size: 10px; }
+.pagination, .empty-state p { font-size: 11px; }
+.toast { font-size: 13px; }
+
+.editor-name h1 { font-size: 18px; }
+.editor-title p, .editor-meta > div, .editor-meta > button { font-size: 11px; }
+.panel-heading strong, .config-heading strong { font-size: 13px; }
+.component-search input { font-size: 12px; }
+.component-category { font-size: 11px; }
+.component-item strong { font-size: 12px; }
+.component-item small { font-size: 10px; }
+.component-tip, .component-tip button { font-size: 10px; }
+.dag-node-copy strong { font-size: 12px; }
+.dag-node-copy small { font-size: 10px; }
+.canvas-status, .canvas-controls span { font-size: 10px; }
+.config-selected-node strong { font-size: 12px; }
+.config-selected-node small { font-size: 10px; }
+.config-tabs button { font-size: 11px; }
+.config-form label, .modal-form label, .publish-note { font-size: 11px; }
+.config-form input, .config-form select, .config-form textarea, .modal-form input, .publish-note textarea { font-size: 12px; }
+.config-form .sql-config-input { font-size: 11px; }
+.input-suffix span, .quality-rule-list > div, .toggle-row strong { font-size: 11px; }
+.toggle-row small { font-size: 10px; }
+.publish-modal > p, .publish-checks > div { font-size: 12px; }
+.publish-checks strong { font-size: 11px; }
+
+.run-stat-grid p { font-size: 12px; }
+.run-stat-grid small { font-size: 10px; }
+.run-name-cell small, .run-detail-header p { font-size: 11px; }
+.run-detail-title h2 { font-size: 16px; }
+.run-flow-node strong { font-size: 11px; }
+.run-flow-node small { font-size: 10px; }
+.log-tabs > button, .log-content { font-size: 11px; }
+.log-metrics span { font-size: 11px; }
+.diagnosis-heading strong { font-size: 13px; }
+.diagnosis-summary span, .diagnosis-summary p { font-size: 11px; }
+.confidence, .root-cause p, .evidence-box button, .suggestion-box ol { font-size: 11px; }
+.root-cause h3, .evidence-box h3, .suggestion-box h3 { font-size: 12px; }
+.root-cause strong { font-size: 11px; }
+.root-cause code, .suggestion-box code { font-size: 10px; }
+.diagnosis-footer { font-size: 10px; }
+
+.schema-heading strong { font-size: 13px; }
+.connection-select strong, .schema-tree, .tree-leaves button { font-size: 11px; }
+.connection-select small, .schema-footer { font-size: 10px; }
+.sql-tab, .editor-context button { font-size: 11px; }
+.editor-context span { font-size: 10px; }
+.line-numbers, .code-editor textarea { font-size: 13px; }
+.editor-statusbar { font-size: 10px; }
+.result-tabs > button { font-size: 11px; }
+.query-success { font-size: 10px; }
+.result-table td { font-size: 11px; }
+.result-table th small { font-size: 9px; }
+.order-status, .result-footer { font-size: 10px; }
+.history-list strong { font-size: 12px; }
+.history-list small { font-size: 10px; }
+.profile-placeholder p, .tab-placeholder p { font-size: 11px; }
+
+.asset-list strong { font-size: 12px; }
+.asset-list small, .asset-list-footer { font-size: 10px; }
+.asset-title-row p, .asset-description { font-size: 12px; }
+.asset-meta-grid span { font-size: 10px; }
+.asset-meta-grid strong { font-size: 12px; }
+.quality-score h3 { font-size: 13px; }
+.quality-score p, .quality-warning { font-size: 10px; }
+.quality-bars > div, .quality-bars strong { font-size: 10px; }
+.lineage-flow strong { font-size: 10px; }
+.lineage-flow small { font-size: 9px; }
+.schema-tabs button, .schema-card code { font-size: 12px; }
+.security-banner strong { font-size: 12px; }
+.security-banner p, .security-banner button { font-size: 11px; }
+.source-type-grid strong { font-size: 13px; }
+.source-type-grid p { font-size: 11px; }
+.source-table code { font-size: 11px; }
+.modal-header p, .source-type-select small, .connection-test { font-size: 11px; }
+.source-type-select strong { font-size: 12px; }
