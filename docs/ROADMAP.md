@@ -1,6 +1,6 @@
 # 路线图
 
-当前基线：ADR-0009、ADR-0010 和 [2026 年 11 月内部 Alpha 计划](PROJECT_PLAN_2026-11.md)（2026-11-02）。
+当前基线：ADR-0009～0012 和 [2026 年 11 月内部 Alpha 计划](PROJECT_PLAN_2026-11.md)（2026-11-03）。
 
 > 原 StarRocks 存算一体路线已由 ADR-0009 取代，原 T001～T003 任务保留作历史记录，不再直接作为新平台实施任务。`phase1/` 是独立业务项目，不属于月底 Alpha 的代码基础或交付范围。
 
@@ -31,10 +31,11 @@
 |---|---|---|
 | 工程与制品 | monorepo 骨架、CI、`versions.json`、S3/ECR 制品 | 11-02～11-06 |
 | AWS 基础与数据平面 | CDK、EKS、RDS、S3、DS、SeaTunnel、Trino、Catalog | 11-03～11-15 |
-| 控制平面与身份 | FastAPI、PostgreSQL、OIDC、RBAC、审计、数据源 | 11-04～11-15 |
-| 自研 UI 与 Pipeline | React、DAG、组件 Schema、版本、DS 编译器、运行中心 | 11-09～11-22 |
+| 控制平面与身份 | FastAPI、PostgreSQL、OIDC、RBAC、审计、公共 REST、应用服务 | 11-04～11-15 |
+| 自研 UI 与分层模型 | Solution/Scenario 原型、DAG、组件 Schema、版本、DS 编译器 | 11-02～11-22 |
 | SQL、质量与资产 | Trino IDE、质量规则、Schema、表级血缘 | 11-16～11-22 |
 | 可观测性与 AI | 指标、日志、告警、失败上下文、只读诊断 | 11-09～11-25 |
+| 开放集成 | OpenAPI、Scope、只读 FastMCP（P1） | 11-16～11-25 |
 | 验收与发布 | 隔离、安全、恢复、成本、文档和回归 | 11-23～11-30 |
 
 每个工作流开始前必须拆成独立 `docs/tasks/Txxx-*.md`，使用下一可用任务编号；不得直接复用旧 StarRocks 任务。
@@ -43,14 +44,15 @@
 
 优先级由 Alpha 验收和真实客户反馈决定，暂不承诺具体日期：
 
-1. 跨账号/客户 VPC 部署和生产级高可用；
-2. 更多数据源、S3 文件接入和 Pipeline 导入导出；
-3. 补数据、子工作流、复杂依赖等高级调度 UI；
-4. Superset、字段级血缘和更完整的数据治理；
-5. Spark/Flink/CDC 等可选执行能力；
-6. Databricks/DataWorks 等外部平台适配；
-7. 审核后的模板共享和组件市场；
-8. 经审批的低风险自动修复。
+1. Scenario 跨 Pipeline 数据契约、整体状态、SLA 和失败影响；
+2. Solution 安装向导、权限/基础设施绑定和版本升级；
+3. MCP 草稿与审批写操作、Webhook 和事件订阅；
+4. 跨账号/客户 VPC 部署和生产级高可用；
+5. 更多数据源、S3 文件接入和 Pipeline 导入导出；
+6. 补数据、子工作流、复杂依赖等高级调度 UI；
+7. Superset、字段级血缘和更完整的数据治理；
+8. Spark/Flink/CDC、外部平台适配和审核后的共享市场；
+9. 经审批的低风险自动修复。
 
 ## 每个任务的流程
 

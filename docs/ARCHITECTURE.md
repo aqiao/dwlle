@@ -1,16 +1,16 @@
 # dwlle 架构设计
 
-版本：v0.2（2026-11-02） · 状态：已接受
+版本：v0.3（2026-11-03） · 状态：已接受
 目标版本：2026-11-30 内部 Alpha
-决策依据：ADR-0009、ADR-0010
+决策依据：ADR-0009、ADR-0010、ADR-0011、ADR-0012
 
-> v0.2 取代原 StarRocks 存算一体和客户账号单平台部署路线。历史设计与理由保留在 Git 和 ADR 中。
+> v0.3 在平台中立和全自研 UI 基础上，增加 Solution/Scenario/Pipeline 分层及公共 REST/FastMCP 接入。历史设计与理由保留在 Git 和 ADR 中。
 
 ## 1. 产品定位与目标
 
 面向在 AWS 上建设数据平台的中小企业，提供一套可迁移、成本可观测、低门槛的数据开发与运维平台：
 
-> 批量接入数据 → 组装并调度 Pipeline → SQL 查询与转换 → 数据质量与血缘 → AI 辅助诊断
+> 复用解决方案 → 编排业务场景 → 开发 Pipeline → 质量与血缘 → AI 辅助诊断 → REST/MCP 开放集成
 
 首版的价值不是增加另一种计算引擎，而是把成熟开源组件整合成统一产品，并减少部署、开发、排障和成本管理负担。
 
@@ -18,29 +18,35 @@
 
 1. **自研控制平面，复用执行引擎。** 不自研调度器、传输引擎、SQL 引擎或存储引擎。
 2. **客户界面全部自研。** DolphinScheduler 只作为后台执行引擎，不属于客户操作路径。
-3. **数据开放。** 默认数据格式为 Iceberg/Parquet，产品元数据可导出，不以专有格式锁定客户。
-4. **协议中立，适配器具体。** 通用协议不依赖 AWS；云网络、密钥和资源供应通过适配器实现。
-5. **单向编译，避免双写。** dwlle Pipeline 单向编译到 DS，不在两个系统间双向同步定义。
-6. **AI 只读优先。** 先诊断和建议，再考虑审批后的自动修复。
-7. **按中小客户控制默认复杂度。** 首版不默认部署 Spark、Flink、Kafka、完整数据治理平台和商业市场。
+3. **三层产品抽象。** Project 负责运行治理，Scenario 负责业务协作，Pipeline 负责技术执行；Solution 是可共享的项目级版本化模板。
+4. **定义与环境绑定分离。** 共享定义不包含真实凭据或授权，安装时由目标管理员绑定并批准资源。
+5. **API-first。** dwlle-web 与外部应用共用公共领域 REST，FastMCP 与 REST 共用应用服务，不重复业务逻辑。
+6. **数据开放。** 默认数据格式为 Iceberg/Parquet，产品元数据可导出，不以专有格式锁定客户。
+7. **协议中立，适配器具体。** 通用协议不依赖 AWS；云网络、密钥和资源供应通过适配器实现。
+8. **单向编译，避免双写。** dwlle Pipeline 单向编译到 DS，不在两个系统间双向同步定义。
+9. **AI 只读优先。** 默认查询与草稿，写操作按风险审批，首版不自动修复。
+10. **按中小客户控制默认复杂度。** 首版不默认部署 Spark、Flink、Kafka、完整数据治理平台和商业市场。
 
 ## 2. 总体架构
 
 ```text
-用户 / 客户 IdP
-   │ OIDC
-   ▼
-┌──────────────────── SaaS 控制平面（自研） ────────────────────┐
-│ dwlle-web                                                   │
-│  项目 / 数据源 / DAG / SQL / 资产 / 运行中心 / AI 诊断         │
+dwlle-web             外部应用                AI Agent
+   │                      │                       │
+   └────── 公共 REST /api/v1（OpenAPI） ───┐       │ MCP
+                                          │       ▼
+┌──────────────────────────────────┐   FastMCP Tools（语义化白名单）
+│ 身份、租户、Scope、限流、审计、配额  │ ◀──────────────┘
+└───────────────────┬──────────────┘
+                    ▼
+┌──────────────────── 应用服务层（自研） ───────────────────────┐
+│ Project / Scenario / Pipeline / Run / Dataset / Diagnosis    │
+│ Solution / Quality / 权限与 Operation                         │
 │                                                             │
-│ dwlle-api                                                   │
-│  租户、RBAC、审计、Pipeline 版本、资产元数据、AI 工具层          │
-│                                                             │
-│ PostgreSQL                ModelProvider                     │
-│  产品与运行索引              首版一种模型实现，运行时可替换        │
+│ dwlle-web：Solution、Scenario、DAG、SQL、资产、运行与 AI 诊断   │
+│ PostgreSQL：产品定义、版本和运行索引                            │
+│ ModelProvider：可替换模型实现                                  │
 └───────────────────────┬─────────────────────────────────────┘
-                        │ 受控 API / 执行适配器
+                        │ 受控执行适配器
                         ▼
 ┌──────────────────── 数据平面（Kubernetes） ───────────────────┐
 │ DolphinScheduler ── 调度 SeaTunnel、Trino SQL、质量检查         │
@@ -96,7 +102,10 @@ AWS 基础设施适配：EKS、EC2、RDS PostgreSQL、S3、ECR、Secrets Manager
 
 | 页面 | Alpha 能力 |
 |---|---|
-| 登录与工作台 | OIDC 登录、项目/环境切换、最近 Pipeline 和失败任务 |
+| 登录与工作台 | OIDC 登录、项目/环境切换、最近 Scenario 和失败任务 |
+| Solution | 方案详情、版本、组件/权限/资源需求、安装与环境绑定原型 |
+| Scenario | 场景列表、跨 Pipeline 依赖、数据契约、SLA 和整体状态 |
+| 开发者集成 | REST/OpenAPI、MCP Endpoint、服务账号、Scope 和工具清单 |
 | 数据源 | MySQL/PostgreSQL 配置、连接测试、密钥引用 |
 | Pipeline 列表 | 新建、复制、搜索、启停、版本和发布状态 |
 | DAG 编辑器 | 添加/连接/删除节点、参数配置、依赖校验、草稿保存 |
@@ -131,36 +140,73 @@ Draft（草稿）
 
 ## 5. 控制平面设计
 
-### 5.1 核心领域对象
+### 5.1 三层领域模型
+
+```text
+Tenant
+  └─ Project：运行、权限与环境边界
+      ├─ Environment / InfrastructureBinding / RoleBinding / SecretRef
+      └─ Scenario：业务目标与跨 Pipeline 协作
+          └─ PipelineVersion：可独立执行的数据工作流
+              └─ Component / TaskNode
+
+Solution：Project 级可共享模板，锁定 Scenario、Pipeline 和组件版本
+```
+
+- Project 保存实际环境绑定；Solution 只保存可移植定义与需求，不保存真实密钥或授权。
+- Scenario 只引用同一项目内的 PipelineVersion，包含依赖、数据契约、SLA、负责人和整体状态。
+- 数据契约至少可表达数据分区就绪、新鲜度和质量通过，避免只依赖上游任务成功。
+- 安装 Solution 必须经过兼容性检查、权限/成本审查、环境绑定和部署验证。
+- 固定三层，不支持场景嵌套；跨项目引用和公开共享市场后续开放。
+
+### 5.2 核心领域对象
 
 | 对象 | 说明 | 事实来源 |
 |---|---|---|
 | Tenant / Project / Environment | 租户、项目和开发/生产环境 | dwlle |
+| Solution / SolutionVersion | 项目级模板、依赖锁定、权限与资源需求 | dwlle |
+| Scenario / ScenarioVersion | Pipeline 引用、依赖、数据契约和 SLA | dwlle |
 | User / Role / AuditEvent | 用户、Admin/Developer/Viewer 和关键操作审计 | dwlle，身份属性来自 IdP |
-| DataSource | 数据源类型、连接参数和密钥引用，不保存明文密钥 | dwlle |
+| DataSource / SecretRef | 数据源类型、连接参数和密钥引用，不保存明文密钥 | dwlle |
 | Pipeline / PipelineVersion | 中立节点、依赖、调度、资源和质量配置 | dwlle |
 | ComponentVersion | 节点类型、参数 Schema、引擎要求和版本兼容 | dwlle 注册表 |
-| Run / TaskRun | 编译后执行实例、状态、日志位置和指标 | DS 执行，dwlle 建索引 |
+| Run / TaskRun / Operation | 执行实例、异步操作、状态、日志位置和指标 | DS/应用服务，dwlle 建索引 |
 | Dataset / LineageEdge | 技术 Schema、负责人和表级血缘 | Catalog/Trino + dwlle |
 | QualityRule / QualityResult | SQL 质量规则和执行结果 | dwlle |
 | Alert / Diagnosis | 阈值告警、AI 上下文、结论与建议 | dwlle |
 
-### 5.2 Pipeline 协议
+### 5.3 Pipeline 协议
 
 首版 Pipeline 至少包含：
 
-- 唯一标识、版本、项目、环境和负责人；
+- 唯一标识、版本、项目、场景、环境和负责人；
 - 节点 ID、类型、配置、输入输出 Dataset 引用；
 - 节点依赖、调度表达式、超时、重试和失败策略；
 - 引擎要求及组件版本；
 - 密钥只存引用，不进入导出文件、日志或 AI 上下文；
 - 创建、发布、回滚到历史版本的审计记录。
 
-节点分为通用节点、SeaTunnel/Trino 引擎节点和后续云专用节点。发布时由 `DolphinSchedulerCompiler` 生成工作流，并保存 `PipelineVersion → DS workflow code` 映射。
+节点分为通用节点、SeaTunnel/Trino 引擎节点和后续云专用节点。发布时由 `DolphinSchedulerCompiler` 生成工作流，并保存 `PipelineVersion → DS workflow code` 映射。Scenario 协调和数据契约由 dwlle 负责，不要求 DS 理解三层模型。
 
-### 5.3 运行与日志
+### 5.4 公共 REST 与应用服务
 
-- 所有 DS API 调用集中在一个带版本契约测试的 client 中，前端不直接访问 DS。
+- dwlle-web 和外部应用共用 `/api/v1` 领域接口，提供 OpenAPI、分页、统一错误码、幂等键和异步 Operation。
+- 核心资源路径包括 `/projects`、`/scenarios`、`/pipelines`、`/runs`、`/datasets`、`/diagnoses`、`/solutions`。
+- UI 聚合与偏好可使用内部 BFF 接口，但核心能力不得绕过公共领域权限。
+- REST Controller 不承载业务逻辑，统一调用 ProjectService、ScenarioService、PipelineService、RunService、DatasetService、DiagnosisService 等应用服务。
+
+### 5.5 FastMCP 集成
+
+- 默认与控制平面同应用部署，FastMCP Tool 直接调用 Application Service，不通过 HTTP 组合 REST；独立部署时可复用 REST。
+- MCP 工具使用语义化白名单，不从 OpenAPI 自动生成，不直接访问 Repository、DS、Trino 或云资源。
+- 首版工具以只读为主：`pipeline.list/get`、`scenario.get_status`、`run.get_status/get_logs`、`dataset.get_schema/get_lineage`、`run.diagnose`。
+- 场景状态、失败诊断等组合逻辑放在应用服务，避免 Agent 连续调用大量细粒度接口。
+- REST/MCP 均使用统一 `tenant + project + actor + agent + scopes` 上下文；权限取交集，审计保留真实用户和 Agent 身份。
+- Agent 默认只读和草稿；发布、运行、安装、授权、云资源和删除操作必须按风险人工确认。
+
+### 5.6 运行与日志
+
+- 所有 DS API 调用集中在一个带版本契约测试的 client 中，前端和 MCP 不直接访问 DS。
 - 控制平面通过轮询或事件同步运行状态，不在请求线程中等待长任务完成。
 - 日志主体留在数据平面，控制平面保存位置、摘要和受权限保护的查询入口。
 - 重跑和重试由用户主动触发；AI 不直接调用写操作。
