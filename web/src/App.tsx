@@ -3,12 +3,15 @@ import { AppShell } from './components/AppShell'
 import { Icon } from './components/Icon'
 import type { PageId } from './types'
 import { Dashboard } from './pages/Dashboard'
+import { Solutions } from './pages/Solutions'
+import { Scenarios } from './pages/Scenarios'
 import { Pipelines } from './pages/Pipelines'
 import { PipelineEditor } from './pages/PipelineEditor'
 import { Runs } from './pages/Runs'
 import { SqlWorkspace } from './pages/SqlWorkspace'
 import { Assets } from './pages/Assets'
 import { DataSources } from './pages/DataSources'
+import { Integrations } from './pages/Integrations'
 
 export default function App() {
   const [page, setPage] = useState<PageId>('dashboard')
@@ -27,6 +30,12 @@ export default function App() {
 
   let content
   switch (page) {
+    case 'solutions':
+      content = <Solutions onNotify={notify} />
+      break
+    case 'scenarios':
+      content = <Scenarios onOpenPipeline={openPipeline} onNotify={notify} />
+      break
     case 'pipelines':
       content = <Pipelines onOpen={openPipeline} onNotify={notify} />
       break
@@ -44,6 +53,9 @@ export default function App() {
       break
     case 'sources':
       content = <DataSources onNotify={notify} />
+      break
+    case 'integrations':
+      content = <Integrations onNotify={notify} />
       break
     default:
       content = <Dashboard onNavigate={setPage} />

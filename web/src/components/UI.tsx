@@ -52,7 +52,7 @@ export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?:
   )
 }
 
-export function Tag({ children, tone = 'default' }: { children: ReactNode; tone?: 'default' | 'blue' | 'purple' }) {
+export function Tag({ children, tone = 'default' }: { children: ReactNode; tone?: 'default' | 'blue' | 'purple' | 'green' }) {
   return <span className={`tag tag-${tone}`}>{children}</span>
 }
 

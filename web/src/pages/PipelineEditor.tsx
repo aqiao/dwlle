@@ -80,7 +80,7 @@ export function PipelineEditor({ pipelineId, onBack, onNotify }: PipelineEditorP
       <div className="editor-header">
         <div className="editor-title">
           <button className="icon-button" aria-label="返回 Pipeline 列表" onClick={onBack}><Icon name="back" /></button>
-          <div><div className="editor-name"><h1>电商订单每日入湖</h1><StatusBadge status={published ? 'success' : 'draft'} label={published ? '已发布 v9' : '草稿有修改'} /></div><p>ID: {pipelineId} · 自动保存于 09:42:18</p></div>
+          <div><div className="editor-name"><h1>电商订单每日入湖</h1><StatusBadge status={published ? 'success' : 'draft'} label={published ? '已发布 v9' : '草稿有修改'} /></div><p>零售经营分析 / 订单履约分析 · ID: {pipelineId} · 自动保存于 09:42:18</p></div>
         </div>
         <div className="editor-actions">
           <Button icon="eye">预览</Button>
@@ -90,7 +90,7 @@ export function PipelineEditor({ pipelineId, onBack, onNotify }: PipelineEditorP
         </div>
       </div>
       <div className="editor-meta">
-        <div><span>项目</span><strong>零售事业部</strong></div><div><span>环境</span><strong><i className="env-dot" />生产环境</strong></div><div><span>调度</span><strong><Icon name="calendar" size={14} />每天 02:00</strong></div><div><span>负责人</span><strong>陈默</strong></div>
+        <div><span>项目</span><strong>零售经营分析</strong></div><div><span>场景</span><strong>订单履约分析</strong></div><div><span>环境</span><strong><i className="env-dot" />生产环境</strong></div><div><span>调度</span><strong><Icon name="calendar" size={14} />每天 02:00</strong></div><div><span>负责人</span><strong>陈默</strong></div>
         <button onClick={() => onNotify('调度设置已打开（原型）')}><Icon name="settings" size={15} />调度设置</button>
       </div>
       <div className={`editor-workspace ${configOpen ? '' : 'config-collapsed'}`}>

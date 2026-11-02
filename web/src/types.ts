@@ -1,11 +1,14 @@
 export type PageId =
   | 'dashboard'
+  | 'solutions'
+  | 'scenarios'
   | 'pipelines'
   | 'editor'
   | 'runs'
   | 'sql'
   | 'assets'
   | 'sources'
+  | 'integrations'
 
 export type Status = 'success' | 'running' | 'failed' | 'paused' | 'draft' | 'warning'
 

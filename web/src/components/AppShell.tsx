@@ -14,6 +14,8 @@ const navigation: { label: string; items: { id: PageId; label: string; icon: Ico
     label: '工作空间',
     items: [
       { id: 'dashboard', label: '工作台', icon: 'dashboard' },
+      { id: 'solutions', label: '解决方案', icon: 'layers' },
+      { id: 'scenarios', label: '业务场景', icon: 'pipeline' },
       { id: 'pipelines', label: 'Pipeline', icon: 'pipeline' },
       { id: 'runs', label: '运行中心', icon: 'runs', badge: '3' },
       { id: 'sql', label: 'SQL 工作台', icon: 'sql' },
@@ -24,6 +26,12 @@ const navigation: { label: string; items: { id: PageId; label: string; icon: Ico
     items: [
       { id: 'assets', label: '数据资产', icon: 'assets' },
       { id: 'sources', label: '数据源', icon: 'database' },
+    ],
+  },
+  {
+    label: '开放集成',
+    items: [
+      { id: 'integrations', label: 'API 与 MCP', icon: 'code' },
     ],
   },
 ]
