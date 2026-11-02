@@ -1,69 +1,61 @@
 # 路线图
 
-前提：每天约 2 小时。编码由 Kimi 完成，设计与评审由 Claude 负责。
+当前基线：ADR-0009、ADR-0010 和 [2026 年 11 月内部 Alpha 计划](PROJECT_PLAN_2026-11.md)（2026-11-02）。
 
-## 当前优先：oversea-opinion-analysis（实际客户项目）
+> 原 StarRocks 存算一体路线已由 ADR-0009 取代，原 T001～T003 任务保留作历史记录，不再直接作为新平台实施任务。`phase1/` 是独立业务项目，不属于月底 Alpha 的代码基础或交付范围。
 
-在 dwlle 各阶段任务之前，优先完成 `phase1/oversea-opinion-analysis/` —— 一个真实的客户项目：监控海外舆情，采集海外主要新闻媒体的热点信息，经 LLM 汇总分析后交付日报和仪表盘。以此项目为入手点，跑通后不断细化，其技术组件（Kafka → StarRocks 管道、LLM 分析、StarRocks 数据建模）也将反哺 dwlle 的后续设计。
+## 当前优先：2026 年 11 月内部 Alpha
 
-技术架构：
-- 采集：海外媒体 RSS + 正文抓取（requests），写入 Kafka
-- 入仓：Kafka 消费攒批，Stream Load 写入 StarRocks（主键模型幂等）
-- 分析：AWS Bedrock 上的 Kimi 模型做摘要 / 情感 / 话题分析，结果写回 StarRocks
-- 交付：中文 Markdown 日报 + 客户侧 Amazon Quick Suite 仪表盘（MySQL 协议连 StarRocks，读 BI 视图）
+目标：在真实 AWS 账号中跑通“OIDC 登录 → 自研 DAG → SeaTunnel 接入 → Iceberg → Trino 转换/查询 → 质量检查 → DS 调度 → 资产/血缘/日志 → AI 只读诊断”。
 
-当前状态：采集 → 入仓 → LLM 分析 → 日报 的闭环代码已完成，待服务器部署验证。
+完整功能边界、资源前提和验收脚本见 [PROJECT_PLAN_2026-11.md](PROJECT_PLAN_2026-11.md)。
 
-任务单：
-- [OA001 部署前修复](tasks/OA001-predeploy-fixes.md)（LLM 响应解析、断线重连、时区统一、话题视图、投递确认）
-- [OA002 数据质量](tasks/OA002-data-quality.md)（失败重试上限、正文提取、数据源清理），依赖 OA001
+### 资源前提
 
-后续迭代方向：社交媒体数据源（X/Reddit/YouTube）、报告自动分发、监控告警。
+主计划按平台工程师和产品工程师各一名全职并行，设计/评审/验收约 0.2 人月。若仍只有每天约 2 小时，必须在 11-03 前选择降级演示目标或调整日期，不能默认承诺完整 P0。
 
-以下 dwlle 路线图在此项目稳定后继续。
+### 里程碑
 
-## 阶段 1：引擎与基准测试（第 1 个月）
+| 里程碑 | 日期 | 目标 |
+|---|---|---|
+| M0：基线与选型冻结 | 11-03 | 新 ADR 已接受；Catalog、OIDC、模型选型确定；P0 冻结 |
+| M1：技术可行性打通 | 11-08 | 手动 JDBC → SeaTunnel → Iceberg → Trino 查询成功 |
+| M2：AWS 数据平面可部署 | 11-15 | EKS/RDS/S3/ECR 和核心组件可重复部署，OIDC 可用 |
+| M3：产品闭环可用 | 11-22 | 从自研 UI 创建、发布和运行标准 Pipeline |
+| M4：功能冻结 | 11-25 | P0 完成，AI 只读诊断接入 |
+| M5：Alpha 验收 | 11-30 | 端到端、安全、隔离、恢复和重复部署验收通过 |
 
-目标：一键部署单节点 StarRocks，并产出**成本与性能对比报告**（第一份销售材料）。
+### 实施工作流
 
-| 任务 | 内容 | 依赖 | 状态 |
-|---|---|---|---|
-| [T001](tasks/T001-cdk-skeleton.md) | CDK 骨架、配置加载、网络和 S3 存储桶 | — | 待开始 |
-| [T002](tasks/T002-artifact-staging.md) | `versions.json` 与 `stage-artifacts` 脚本 | T001 | 待开始 |
-| [T003](tasks/T003-starrocks-node.md) | StarRocks 单节点：EC2、数据卷、安装、初始化（账号、资源组） | T001, T002 | 待开始 |
-| T004 | 备份与恢复：DLM 快照、每日 `BACKUP` 到 S3、恢复操作手册，以及**实例替换演练**（验证 FQDN 模式） | T003 | 待写 |
-| T005 | TPC-DS 基准测试：StarRocks on EC2 对比 Athena、Redshift Serverless，同时比较性能和成本 | T003 | 待写 |
+| 工作流 | 主要内容 | 计划窗口 |
+|---|---|---|
+| 工程与制品 | monorepo 骨架、CI、`versions.json`、S3/ECR 制品 | 11-02～11-06 |
+| AWS 基础与数据平面 | CDK、EKS、RDS、S3、DS、SeaTunnel、Trino、Catalog | 11-03～11-15 |
+| 控制平面与身份 | FastAPI、PostgreSQL、OIDC、RBAC、审计、数据源 | 11-04～11-15 |
+| 自研 UI 与 Pipeline | React、DAG、组件 Schema、版本、DS 编译器、运行中心 | 11-09～11-22 |
+| SQL、质量与资产 | Trino IDE、质量规则、Schema、表级血缘 | 11-16～11-22 |
+| 可观测性与 AI | 指标、日志、告警、失败上下文、只读诊断 | 11-09～11-25 |
+| 验收与发布 | 隔离、安全、恢复、成本、文档和回归 | 11-23～11-30 |
 
-## 阶段 2：调度与查询（第 2 个月）
+每个工作流开始前必须拆成独立 `docs/tasks/Txxx-*.md`，使用下一可用任务编号；不得直接复用旧 StarRocks 任务。
 
-| 任务 | 内容 |
-|---|---|
-| T006 | RDS PostgreSQL 元数据库（DolphinScheduler、Superset、dwlle 分库） |
-| T007 | App 节点与 DolphinScheduler（验证 JDBC registry，ARCHITECTURE Q2） |
-| T008 | StarRocks 异步任务包装（提交后轮询，直到完成） |
-| T009 | Superset 部署（SQL Lab 作为过渡 IDE）并连接 StarRocks |
-| T010 | 数据接入示例：JDBC Catalog 同步 MySQL，`FILES()` 导入文件 |
+## Alpha 之后
 
-## 阶段 3：dwlle 产品层与 Agent（第 3 个月）
+优先级由 Alpha 验收和真实客户反馈决定，暂不承诺具体日期：
 
-顺序说明：先打通调度页和失败诊断，再做自研 IDE。这样 IDE 完成前，失败诊断就能在 dwlle-web 上线（ADR-0008）。
-
-| 任务 | 内容 |
-|---|---|
-| T011 | dwlle-api 骨架与认证方案（ARCHITECTURE Q5） |
-| T012 | DS client 与同步：API 封装、契约测试、按 DS code 挂元数据（ADR-0008） |
-| T013 | dwlle-web 调度页：任务列表、运行实例、重跑、DS 深链接跳转 |
-| T014 | Agent 工具层（MCP）与 AgentCore 接入（ARCHITECTURE Q3/Q4） |
-| T015 | 任务失败诊断 agent（入口在 T013 的运行实例页） |
-| T016 | 自研 SQL IDE 首版，含"查询一键发布为定时任务" |
-| T017 | sqlglot 血缘解析与数据地图 |
-| T018 | NL2SQL，并建立评测集 |
+1. 跨账号/客户 VPC 部署和生产级高可用；
+2. 更多数据源、S3 文件接入和 Pipeline 导入导出；
+3. 补数据、子工作流、复杂依赖等高级调度 UI；
+4. Superset、字段级血缘和更完整的数据治理；
+5. Spark/Flink/CDC 等可选执行能力；
+6. Databricks/DataWorks 等外部平台适配；
+7. 审核后的模板共享和组件市场；
+8. 经审批的低风险自动修复。
 
 ## 每个任务的流程
 
-1. Claude 编写任务说明 `docs/tasks/Txxx-*.md`
-2. 你把任务说明交给 Kimi Code：
-   > 读 AGENTS.md 和 docs/tasks/Txxx-*.md，按任务说明执行
-3. Kimi 在 `task/Txxx-*` 分支上提交，并输出交付说明
-4. Claude 执行 `/code-review` 审查该分支，你决定是否合并
-5. 你在真实 AWS 账号中部署验证。涉及中国区的任务，两个分区都要部署一次
+1. 设计方编写任务说明 `docs/tasks/Txxx-*.md`，明确范围和验收标准。
+2. 编码 agent 阅读 AGENTS、现行架构、已接受 ADR 和任务说明。
+3. 在 `task/Txxx-简短描述` 分支上小步提交，提交信息使用英文并以 `Txxx:` 开头。
+4. 完成自动化测试、两分区 synth 和任务验收后，再进行代码评审。
+5. 涉及真实 AWS 的任务必须在目标账号部署验证；未实测项如实记录。

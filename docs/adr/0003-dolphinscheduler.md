@@ -2,6 +2,8 @@
 状态：已接受
 日期：2026-10-09
 
+> ADR-0009 接受后，默认数据栈改为 SeaTunnel + Trino + Iceberg。本文的 DolphinScheduler 与 RDS PostgreSQL 决策继续有效，StarRocks 专属任务类型等后果不再适用。
+
 ## 背景
 需要可视化的 DAG 调度，支持补数据、重跑和告警，并且交互接近 DataWorks。
 

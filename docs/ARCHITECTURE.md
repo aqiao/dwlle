@@ -1,137 +1,259 @@
 # dwlle 架构设计
 
-版本：v0.1（2026-10-09） · 状态：草案
+版本：v0.2（2026-11-02） · 状态：已接受
+目标版本：2026-11-30 内部 Alpha
+决策依据：ADR-0009、ADR-0010
 
-## 1. 目标与非目标
+> v0.2 取代原 StarRocks 存算一体和客户账号单平台部署路线。历史设计与理由保留在 Git 和 ADR 中。
 
-**目标（MVP）**：在客户 AWS 账号内，一条命令部署出可用的数据平台，跑通一条闭环：
+## 1. 产品定位与目标
 
-> 接入数据源 → 用 SQL / 自然语言开发 ETL → 调度上线 → 失败时 AI 诊断 → ad hoc 查询与看板
+面向在 AWS 上建设数据平台的中小企业，提供一套可迁移、成本可观测、低门槛的数据开发与运维平台：
 
-**目标用户**：国内中小企业的数据/业务团队，数据量 GB ~ 数 TB，对成本敏感，熟悉 DataWorks / MySQL 生态。
+> 批量接入数据 → 组装并调度 Pipeline → SQL 查询与转换 → 数据质量与血缘 → AI 辅助诊断
 
-**非目标（MVP 阶段明确不做）**
-- 不自研任何计算/存储引擎
-- 不追求 DataWorks 功能对齐（数据服务、复杂权限体系、多租户等延后）
-- 不做实时 CDC（Flink 等），只做批量同步
-- 不做 SaaS 托管，只做客户账号内部署
-- 不做公网访问入口（见 §7 ICP）
+首版的价值不是增加另一种计算引擎，而是把成熟开源组件整合成统一产品，并减少部署、开发、排障和成本管理负担。
+
+### 1.1 设计原则
+
+1. **自研控制平面，复用执行引擎。** 不自研调度器、传输引擎、SQL 引擎或存储引擎。
+2. **客户界面全部自研。** DolphinScheduler 只作为后台执行引擎，不属于客户操作路径。
+3. **数据开放。** 默认数据格式为 Iceberg/Parquet，产品元数据可导出，不以专有格式锁定客户。
+4. **协议中立，适配器具体。** 通用协议不依赖 AWS；云网络、密钥和资源供应通过适配器实现。
+5. **单向编译，避免双写。** dwlle Pipeline 单向编译到 DS，不在两个系统间双向同步定义。
+6. **AI 只读优先。** 先诊断和建议，再考虑审批后的自动修复。
+7. **按中小客户控制默认复杂度。** 首版不默认部署 Spark、Flink、Kafka、完整数据治理平台和商业市场。
 
 ## 2. 总体架构
 
+```text
+用户 / 客户 IdP
+   │ OIDC
+   ▼
+┌──────────────────── SaaS 控制平面（自研） ────────────────────┐
+│ dwlle-web                                                   │
+│  项目 / 数据源 / DAG / SQL / 资产 / 运行中心 / AI 诊断         │
+│                                                             │
+│ dwlle-api                                                   │
+│  租户、RBAC、审计、Pipeline 版本、资产元数据、AI 工具层          │
+│                                                             │
+│ PostgreSQL                ModelProvider                     │
+│  产品与运行索引              首版一种模型实现，运行时可替换        │
+└───────────────────────┬─────────────────────────────────────┘
+                        │ 受控 API / 执行适配器
+                        ▼
+┌──────────────────── 数据平面（Kubernetes） ───────────────────┐
+│ DolphinScheduler ── 调度 SeaTunnel、Trino SQL、质量检查         │
+│ SeaTunnel Zeta    ── MySQL/PostgreSQL 批量接入                 │
+│ Trino             ── SQL 查询、CTAS 转换                       │
+│ Iceberg REST Catalog ── 表技术元数据                            │
+│ Prometheus / Loki / Grafana / OpenTelemetry ── 指标与日志        │
+└───────────────────────┬─────────────────────────────────────┘
+                        ▼
+                 对象存储 S3 / Iceberg / Parquet
+
+AWS 基础设施适配：EKS、EC2、RDS PostgreSQL、S3、ECR、Secrets Manager、KMS
 ```
-                 客户 AWS 账号（aws 或 aws-cn 分区）
-┌───────────────────────────────────────────────────────────────────┐
-│ VPC（2 AZ）                                                        │
-│                                                                   │
-│  私有子网                                                          │
-│  ┌──────────────────────────────┐   ┌──────────────────────────┐  │
-│  │ App 节点（EC2, docker compose）│   │ StarRocks 节点（EC2）     │  │
-│  │  - dwlle-web  (React)        │   │  - FE + BE 同机部署       │  │
-│  │  - dwlle-api  (FastAPI)      │──▶│  - 数据：EBS gp3（独立卷） │  │
-│  │  - DolphinScheduler           │   │  - MySQL 协议 :9030       │  │
-│  │    (api/master/worker/alert)  │   └────────────┬─────────────┘  │
-│  │  - Superset                   │                │ BACKUP        │
-│  └──────────────┬───────────────┘                ▼               │
-│                 │                       ┌──────────────────────┐  │
-│                 ▼                       │ S3                    │  │
-│  ┌──────────────────────────────┐       │  - backup bucket      │  │
-│  │ RDS PostgreSQL（元数据库）     │       │  - artifacts bucket   │  │
-│  │  db: dolphinscheduler/superset│       │  - landing bucket     │  │
-│  │      /dwlle                  │       └──────────────────────┘  │
-│  └──────────────────────────────┘                                 │
-│                                                                   │
-│  公有子网：NAT Gateway ×1     S3 Gateway Endpoint（免费）            │
-└───────────────────────────────────────────────────────────────────┘
-          │
-          ▼
-  Bedrock AgentCore（Runtime / Gateway） ──▶ 模型：Claude（Global）或 国内模型（aws-cn）
-  Secrets Manager · CloudWatch Logs · SSM Session Manager · DLM（EBS 快照）
-```
 
-## 3. 组件
+### 2.1 月末部署边界
 
-| 组件 | 选型 | 部署 | 说明 | ADR |
-|---|---|---|---|---|
-| 分析引擎 | StarRocks（存算一体） | 独立 EC2，Graviton 优先 | 数据放 EBS gp3，查询不走 S3 | 0002 |
-| 调度 | Apache DolphinScheduler 3.x | App 节点 docker compose | 注册中心优先用 JDBC registry，避免 ZooKeeper（待验证）；主路径界面由 dwlle-web 提供，原生界面用于进阶运维 | 0003, 0008 |
-| SQL IDE | 过渡：Superset SQL Lab；之后：自研（Monaco） | App 节点 | 不使用 Hue | 0004 |
-| BI 看板 | Apache Superset | App 节点 | 长期保留，通过 Embedded SDK 嵌入 dwlle-web | 0004 |
-| 元数据库 | RDS PostgreSQL（小规格） | 托管 | DS / Superset / dwlle 共用实例、分库 | 0003 |
-| AI Agent | Bedrock AgentCore + 模型抽象层 | 托管 | Agent 只能通过 dwlle-api 暴露的工具访问数据 | 0005 |
-| 后端 | Python 3.12 + FastAPI | App 节点 | Python 便于复用 sqlglot、agent SDK | 0007 |
-| 前端 | React + TypeScript + Monaco | App 节点 | | 0007 |
-| IaC | AWS CDK（TypeScript） | — | 同一代码同时支持 aws / aws-cn | 0001 |
+- 目标架构支持控制平面与数据平面分账号部署；月末只验收同账号、单 AWS Global Region。
+- 两个平面使用独立可部署单元和 API 边界，不把同账号演示固化为长期架构。
+- CDK 保持 `aws` / `aws-cn` 分区兼容并执行两种 synth；月末不承诺中国区实际部署验证。
+- Alpha 为内部/邀请制环境，不开放公网自助注册，不承诺生产 SLA。
 
-### 3.1 关于元数据（对早期讨论的修正）
+## 3. 组件职责
 
-StarRocks 存算一体模式下，内表元数据由 StarRocks FE 自己管理，**不在 Glue Data Catalog 中**。因此：
-- 数据地图 MVP 直接读取 StarRocks `information_schema`
-- Glue Data Catalog 只在客户需要查询 S3 上的 Iceberg/Hive 外表时，作为 External Catalog 接入（可选）
-
-### 3.2 数据接入（MVP 不引入额外组件）
-
-| 来源 | 方式 |
-|---|---|
-| MySQL / PostgreSQL | StarRocks JDBC Catalog + `INSERT INTO ... SELECT`，由 DS 定时调度 |
-| 文件（CSV/Parquet/JSON） | 上传至 landing bucket，`INSERT INTO ... SELECT * FROM FILES(...)` |
-| 实时 CDC | 不在 MVP，后续评估 Flink CDC / Routine Load |
-
-## 4. 自研部分（产品价值所在）
-
-1. **StarRocks 任务类型（DS 插件或包装脚本）**：提交异步作业（Broker Load、`SUBMIT TASK`、物化视图刷新）后轮询 `information_schema` 直至完成，再向 DS 回报成功/失败。
-2. **血缘**：用 sqlglot（StarRocks 方言）解析 DS 任务中的 SQL，生成表级 / 字段级血缘，存于 dwlle 库。
-3. **数据质量**：基于 SQL 的规则（非空、唯一、阈值、波动），在 StarRocks 内执行，可作为 DS 任务节点。
-4. **SQL IDE**：编辑、结果网格、库表树、历史、"查询一键转调度任务"。
-5. **Agent 能力**：NL2SQL、ETL/DAG 生成、任务失败诊断（汇总 DS 日志 + StarRocks profile）。
-6. **DS client 与调度页**：dwlle-api 中唯一调用 DS API 的模块（锁版本、契约测试），按 DS code 挂 dwlle 元数据；dwlle-web 提供任务列表、运行实例、重跑和深链接跳转（ADR-0008）。
-
-## 5. Agent 安全模型
-
-- Agent **不直连数据库**。所有数据访问经由 dwlle-api 暴露的工具（通过 AgentCore Gateway 以 MCP 形式提供）。
-- 工具层强制：只读账号执行 ad hoc 查询；结果行数上限；超时；写操作（建表、建任务）只生成草稿，必须由用户在 UI 确认后执行。
-- 模型抽象层：统一接口 `ModelProvider`，实现 `bedrock`（Global：Claude）与 `openai_compatible`（国内模型）。由部署配置选择。
-
-## 6. StarRocks 默认配置（面向非专家用户）
-
-部署时默认写入，用户无需调优：
-- Resource Group：`rg_etl`（DS 账号）与 `rg_adhoc`（IDE/Superset/Agent 账号）分别限制 CPU / 内存
-- 大查询熔断：按扫描行数、CPU 时间、内存设上限
-- 查询队列：开启
-- Spill to disk：开启，落在数据卷
-- `query_timeout`：ad hoc 默认 300s，ETL 由任务单独设置
-
-具体数值随实例规格计算，见任务 T003。
-
-## 7. 分区差异（aws vs aws-cn）
-
-| 方面 | 要求 |
-|---|---|
-| ARN / 域名 | 禁止硬编码 `arn:aws:`、`amazonaws.com`；使用 `Aws.PARTITION`、`Aws.URL_SUFFIX` 或 CDK 内建方法 |
-| 安装包下载 | 中国区访问 GitHub / 海外下载站不可靠。所有第三方安装包（StarRocks、DS、Superset 镜像等）**预先放入 artifacts bucket**，部署时只从 S3 获取（ADR-0006） |
-| 容器镜像 | 同上，镜像推送到客户账号 ECR，或打包为 tar 存 S3 |
-| 实例规格 | Graviton 机型在各区可用性不同，实例类型必须可配置，并在 synth 时校验 |
-| 模型 | Global：Bedrock Claude；aws-cn：国内模型（经 NAT 访问公网 API 或当地可用的托管模型） |
-| 公网访问 | 中国区对外提供 Web 服务需 ICP 备案。MVP 只提供私网访问：SSM 端口转发 / 客户 VPN |
-| 认证 | Cognito 在中国区可用性需确认；MVP 采用 dwlle 自有账号体系（待定，见 §9） |
-
-## 8. 运维与可靠性（MVP 级别）
-
-- 访问：无公网 IP，管理通过 SSM Session Manager
-- 密钥：StarRocks root 密码、RDS 密码存 Secrets Manager，首次启动生成
-- 备份：DLM 每日 EBS 快照（保留 7 天）+ StarRocks `BACKUP` 到 S3（逻辑备份）
-- 故障恢复：EC2 自动恢复（CloudWatch recover 告警）；EBS 数据卷独立于实例生命周期，`RemovalPolicy.RETAIN`
-- 节点身份：Route 53 私有托管区 + StarRocks FQDN 模式，实例替换后 IP 变化不影响 FE 元数据（T003 D2）
-- 日志：CloudWatch Agent 采集 StarRocks / DS 日志
-
-## 9. 待决问题
-
-| # | 问题 | 负责人 | 截止 |
+| 层次 | 组件 | 职责 | 首版边界 |
 |---|---|---|---|
-| Q1 | StarRocks 官方 ARM64 二进制是否满足生产使用？否则回退 x86（r7i） | T003 验证 | — |
-| Q2 | DS 3.x JDBC registry 是否稳定，可否完全去掉 ZooKeeper | T007 验证 | — |
-| Q3 | AgentCore Runtime 访问私有 VPC 内 dwlle-api 的方式 | 设计 | 阶段 3 前 |
-| Q4 | 中国区可用的模型清单与调用方式 | 用户确认 | 阶段 3 前 |
-| Q5 | 用户认证方案（自有账号 / Keycloak / Cognito） | 设计 | 阶段 2 前 |
-| Q6 | NAT Gateway 成本是否需要换 NAT 实例选项 | 成本测算后 | — |
-| Q7 | DS 3.x 是否支持 OIDC/OAuth2 登录，能否与 dwlle 单点登录 | T007 验证 | — |
+| 前端 | React + TypeScript + Monaco | 全部客户界面、DAG、SQL、资产、运行和诊断 | 简单 DAG，不复刻 DS 全部能力 |
+| API | Python 3.12 + FastAPI | 产品 API、权限、审计、适配器、AI 工具 | 单区域部署 |
+| 产品数据库 | PostgreSQL | 租户、项目、定义、版本、资产、运行索引 | 不存客户业务数据 |
+| 身份 | Keycloak 或等价 OIDC Broker | 对接一个 OIDC Provider、登录和令牌 | 应用 RBAC 仍由 dwlle 管理 |
+| 调度 | DolphinScheduler 3.x | 定时、依赖、手动运行、重试、执行状态 | 后台无头引擎，受管定义由 dwlle 编译 |
+| 接入 | SeaTunnel Zeta | MySQL/PostgreSQL 到 Iceberg 的批量任务 | 全量/追加；不做实时 CDC |
+| 查询 | Trino | SELECT、CTAS、SQL 质量检查 | 限制查询时间、结果行数和资源 |
+| 表格式 | Apache Iceberg | 开放表、Schema 演进和快照 | 不首版暴露复杂表维护操作 |
+| 技术目录 | Iceberg REST Catalog | 表标识和元数据位置 | 实现选型第一周验证 |
+| 对象存储 | S3 | 数据文件、任务产物和制品 | 数据不出约定区域 |
+| 可观测性 | OTel、Prometheus、Loki、Grafana | 指标、日志、告警和排障上下文 | 不建设完整 APM/追踪平台 |
+| AI | ModelProvider + dwlle 工具层 | 失败摘要、根因候选、修复建议 | 只读；无自动修复 |
+| IaC | AWS CDK TypeScript | AWS 网络、计算、数据库、存储和安全 | 两分区 synth，单分区实测 |
+
+### 3.1 首版不引入的组件
+
+- Spark/Flink：SeaTunnel 和 Trino 已覆盖首版批处理路径。
+- Kafka：没有实时流用例。
+- DataHub/OpenMetadata：先实现轻量资产与血缘，避免引入额外存储和索引依赖。
+- Superset：可作为后续嵌入组件，不阻塞首版数据开发闭环。
+- 独立服务网格、复杂多集群调度：Alpha 无对应规模需求。
+
+## 4. 自研用户界面
+
+### 4.1 界面边界
+
+所有客户可见功能都在 dwlle-web 中完成：
+
+| 页面 | Alpha 能力 |
+|---|---|
+| 登录与工作台 | OIDC 登录、项目/环境切换、最近 Pipeline 和失败任务 |
+| 数据源 | MySQL/PostgreSQL 配置、连接测试、密钥引用 |
+| Pipeline 列表 | 新建、复制、搜索、启停、版本和发布状态 |
+| DAG 编辑器 | 添加/连接/删除节点、参数配置、依赖校验、草稿保存 |
+| 发布与版本 | 校验、发布、历史版本和回滚 |
+| 运行中心 | 手动运行、定时状态、重试、任务状态和日志 |
+| SQL IDE | SQL 编辑、执行、结果表格、历史、保存为 SQL 节点 |
+| 数据资产 | 库表、Schema、数据预览和表级血缘 |
+| 质量与告警 | 规则配置、质量结果和失败告警 |
+| AI 诊断 | 失败摘要、证据、根因候选和修复建议 |
+| 管理 | 用户、角色、审计和基本主题配置 |
+
+不使用 iframe，不向客户提供 DS 深链接。DS 原生 UI 只允许内部管理员通过独立账号紧急排障，普通用户无访问权限。
+
+### 4.2 DAG 与组件注册表
+
+- 使用成熟图编辑库实现节点、连线、缩放和布局，不从零开发画布。
+- 后端组件注册表提供节点类型、版本、参数 Schema、输入输出约束和引擎要求。
+- 前端根据 Schema 渲染节点配置表单，后端使用同一 Schema 校验。
+- Alpha 支持串行、并行分支和汇合；跨项目依赖、子工作流、补数据、复杂日历和 Worker 分组后续实现。
+
+### 4.3 发布模型
+
+```text
+Draft（草稿）
+  → Validate（结构、参数、权限、SQL 校验）
+  → Published（不可变版本）
+  → Compiled（生成 DS 工作流）
+  → Running（运行实例关联已发布版本）
+```
+
+回滚通过历史版本生成一个新发布版本，保留完整审计。DS 中的定义不反向同步，避免双写和定义漂移。
+
+## 5. 控制平面设计
+
+### 5.1 核心领域对象
+
+| 对象 | 说明 | 事实来源 |
+|---|---|---|
+| Tenant / Project / Environment | 租户、项目和开发/生产环境 | dwlle |
+| User / Role / AuditEvent | 用户、Admin/Developer/Viewer 和关键操作审计 | dwlle，身份属性来自 IdP |
+| DataSource | 数据源类型、连接参数和密钥引用，不保存明文密钥 | dwlle |
+| Pipeline / PipelineVersion | 中立节点、依赖、调度、资源和质量配置 | dwlle |
+| ComponentVersion | 节点类型、参数 Schema、引擎要求和版本兼容 | dwlle 注册表 |
+| Run / TaskRun | 编译后执行实例、状态、日志位置和指标 | DS 执行，dwlle 建索引 |
+| Dataset / LineageEdge | 技术 Schema、负责人和表级血缘 | Catalog/Trino + dwlle |
+| QualityRule / QualityResult | SQL 质量规则和执行结果 | dwlle |
+| Alert / Diagnosis | 阈值告警、AI 上下文、结论与建议 | dwlle |
+
+### 5.2 Pipeline 协议
+
+首版 Pipeline 至少包含：
+
+- 唯一标识、版本、项目、环境和负责人；
+- 节点 ID、类型、配置、输入输出 Dataset 引用；
+- 节点依赖、调度表达式、超时、重试和失败策略；
+- 引擎要求及组件版本；
+- 密钥只存引用，不进入导出文件、日志或 AI 上下文；
+- 创建、发布、回滚到历史版本的审计记录。
+
+节点分为通用节点、SeaTunnel/Trino 引擎节点和后续云专用节点。发布时由 `DolphinSchedulerCompiler` 生成工作流，并保存 `PipelineVersion → DS workflow code` 映射。
+
+### 5.3 运行与日志
+
+- 所有 DS API 调用集中在一个带版本契约测试的 client 中，前端不直接访问 DS。
+- 控制平面通过轮询或事件同步运行状态，不在请求线程中等待长任务完成。
+- 日志主体留在数据平面，控制平面保存位置、摘要和受权限保护的查询入口。
+- 重跑和重试由用户主动触发；AI 不直接调用写操作。
+
+## 6. 数据流与血缘
+
+月末标准链路：
+
+```text
+MySQL/PostgreSQL
+   │ SeaTunnel 全量或追加
+   ▼
+S3 Iceberg raw 表
+   │ Trino CTAS / SQL
+   ▼
+S3 Iceberg curated 表
+   │ SQL 质量检查
+   ▼
+数据集列表、Schema、表级血缘和查询预览
+```
+
+- 首版支持库表级血缘，来源为 Pipeline 显式输入输出和 Trino SQL 解析。
+- 字段级血缘、跨版本影响分析和完整数据地图不在月末范围。
+- 数据质量规则包括非空、唯一、行数阈值和新鲜度；规则失败可终止下游节点。
+- 技术目录只保存表元数据；业务资产目录由 dwlle 保存，两者通过表标识关联。
+
+## 7. 平台中立边界
+
+### 7.1 可以替换的部分
+
+- 对象存储：通过 S3 兼容接口或明确适配器替换。
+- 计算基础设施：通过 Kubernetes manifests/Helm 与云供应适配器替换。
+- 密钥、模型、通知和身份提供方：通过窄接口替换。
+- 执行引擎：新增适配器，不改变既有 Pipeline 的引擎专用语义。
+
+### 7.2 不做虚假的可移植承诺
+
+- Trino SQL 不保证可在 Spark SQL、StarRocks 或 Databricks 上直接执行。
+- SeaTunnel 连接器的语义由其引擎决定，平台只统一配置和运行观测。
+- Pipeline 导出时必须携带组件版本和引擎要求；导入时执行兼容性检查。
+- 后续增加平台时，提供可移植性报告和节点替换提示，而非自动改写所有逻辑。
+
+## 8. 安全与多租户
+
+- 控制平面采用租户隔离，所有产品查询必须带租户上下文；关键操作记录审计。
+- Alpha 至少验证两个租户的产品元数据隔离；每个客户使用独立数据平面，跨账号部署尚未验收。
+- OIDC 只负责身份认证；应用权限采用 Admin、Developer、Viewer 三种角色。
+- 数据库密码和访问密钥存 Secrets Manager，通过接口隔离具体实现，禁止写入 Pipeline、日志和镜像。
+- Trino 查询使用受限服务身份，设置执行超时、扫描/结果限制和项目资源配额。
+- AI 工具按用户权限执行，默认只读；发送模型前移除密钥，并提供日志/内容脱敏。
+- 管理入口不开公网；AWS 管理通过 SSM，应用入口仅对受邀用户开放。
+- 数据卷、S3 数据桶和 RDS 默认保留，开发环境只有显式配置才允许销毁。
+
+## 9. AI 辅助运维
+
+首版只实现任务失败诊断：
+
+1. 收集失败节点的错误日志、最近运行指标、Pipeline 版本和最近变更。
+2. 通过规则完成错误分类和敏感信息清理。
+3. 模型输出失败摘要、最多三个根因候选、证据引用和修复建议。
+4. 在运行实例页展示，并允许用户标记“有帮助/无帮助”。
+5. 不自动修改 Pipeline、不重启任务、不扩容、不执行 SQL 修复。
+
+系统指标、应用指标和数据指标先使用阈值告警。趋势预测、容量预测、GC 全量分析和自治修复不属于月末范围。
+
+## 10. 可靠性、成本与运维
+
+- Alpha 允许单副本应用，不承诺控制平面和 Trino 的高可用。
+- RDS 和 S3 开启备份/版本保护；提供一次元数据库恢复演练，客户业务数据以 Iceberg/S3 持久化。
+- DS、Trino 和 SeaTunnel 的镜像与版本锁定到 `versions.json`，制品预置 S3/ECR，部署不从公网拉取。
+- 使用 requests/limits、查询超时、项目并发上限和结果行数上限控制资源。
+- 记录每个 Pipeline 的运行时长、读写数据量和估算成本；月末只展示可获得的指标，不承诺精确账单分摊。
+- 关闭非演示环境夜间资源的策略可作为运维脚本，但不能影响持久数据和元数据恢复。
+
+## 11. Alpha 验收场景
+
+在一个真实 AWS 账号中完成：
+
+1. 用户通过 OIDC 登录，并被分配到项目和角色。
+2. 配置一个 MySQL 或 PostgreSQL 数据源，密钥不出现在日志中。
+3. 在自研 DAG 中创建并发布“SeaTunnel 接入 → Trino 转换 → 质量检查”的 Pipeline。
+4. 手动运行成功后设置定时调度，可以查看版本、状态和日志，无需打开 DS UI。
+5. 查询 raw/curated 表，查看 Schema 和表级血缘。
+6. 注入一个可复现失败，收到基础告警并获得带证据的 AI 诊断建议。
+7. 使用第二个租户验证产品元数据不可互相访问。
+8. 删除演示资源时，保留策略按配置生效，不留下公网下载或明文密钥。
+
+## 12. 待决问题与验证门槛
+
+| # | 问题 | 截止 | 失败处理 |
+|---|---|---|---|
+| Q1 | 选择哪个 Iceberg REST Catalog 实现，能否与 Trino/SeaTunnel 稳定集成 | 11-03 | 复审选型，不临时自研 Catalog |
+| Q2 | SeaTunnel Zeta 是否满足 JDBC → S3/Iceberg 的批任务和恢复要求 | 11-08 | 缩减连接器范围或复审执行引擎 |
+| Q3 | Keycloak 与 dwlle 的集成及 DS 管理入口隔离 | 11-08 | DS 独立管理账号，不阻塞 dwlle OIDC |
+| Q4 | 单客户最小数据平面月成本是否满足目标 | 11-15 | 调整共享执行池或资源规格，不宣称低成本 |
+| Q5 | 模型日志脱敏和诊断准确率是否达到演示要求 | 11-25 | 保留规则诊断，AI 标为实验功能 |

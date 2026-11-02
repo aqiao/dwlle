@@ -2,6 +2,8 @@
 状态：已接受
 日期：2026-10-09
 
+> ADR-0009 接受后，SQL IDE 的默认方言改为 Trino，Superset 改为后续可选组件；自研 IDE 与 BI 复用开源组件的方向不变。
+
 ## 背景
 StarRocks 开源版没有 Web SQL 编辑器。SQL IDE 是用户停留时间最长的地方，也是 agent 体验的主战场。
 
