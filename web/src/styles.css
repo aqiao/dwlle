@@ -1187,3 +1187,17 @@ body { font-size: 14px; }
   .environment-select > span { display: none; }
   .environment-select select { min-width: 96px; }
 }
+
+/* Workspace and personal settings */
+.workspace-settings-button { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 9px; border: 1px solid #e1e7ef; border-radius: 6px; color: #617086; background: #fff; font-size: 12px; }
+.workspace-settings-button:hover { color: var(--primary); border-color: #cbd5ef; background: #f6f8ff; }
+.personal-area { position: relative; }
+.sidebar-user { width: 100%; text-align: left; border-radius: 7px; }
+.sidebar-user:hover { background: #eef2f7; }
+.personal-menu { position: absolute; left: 0; right: 0; bottom: 46px; z-index: 60; padding: 6px; border: 1px solid #e1e7ef; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(24,39,75,.12); }
+.personal-menu button { width: 100%; display: flex; align-items: center; gap: 8px; padding: 9px 8px; border-radius: 5px; color: #5c6b80; font-size: 11px; text-align: left; }
+.personal-menu button:hover { color: var(--primary); background: #f1f4fa; }
+@media (max-width: 760px) {
+  .workspace-settings-button span { display: none; }
+  .workspace-settings-button { padding: 0 7px; }
+}

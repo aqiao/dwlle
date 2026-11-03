@@ -102,7 +102,7 @@ describe('dwlle UI prototype', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(screen.getByRole('button', { name: /^API 与 MCP$/ }))
+    await user.click(screen.getByRole('button', { name: '工作空间设置' }))
     expect(screen.getByText('FastMCP Server')).toBeInTheDocument()
     expect(screen.getByText('scenario.get_status')).toBeInTheDocument()
 
@@ -129,5 +129,15 @@ describe('dwlle UI prototype', () => {
     expect(screen.getByText('模板更新不会直接覆盖你的实例')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '前往日常工作' }))
     expect(screen.getByRole('heading', { name: '业务场景' })).toBeInTheDocument()
+  })
+
+  it('opens personal settings from the sidebar user area', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: '个人设置' }))
+    expect(screen.getByRole('button', { name: '个人信息' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '界面偏好' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '退出登录' })).toBeInTheDocument()
   })
 })

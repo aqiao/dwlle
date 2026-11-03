@@ -37,18 +37,13 @@ const navigation: { label: string; items: { id: PageId; label: string; icon: Ico
       { id: 'installed', label: '已安装与更新', icon: 'download' },
     ],
   },
-  {
-    label: '开放集成',
-    items: [
-      { id: 'integrations', label: 'API 与 MCP', icon: 'code' },
-    ],
-  },
 ]
 
 export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [workspace, setWorkspace] = useState('零售经营分析')
   const [environment, setEnvironment] = useState('生产环境')
+  const [personalOpen, setPersonalOpen] = useState(false)
   const activeNav = activePage === 'editor' ? 'pipelines' : activePage
 
   const navigate = (page: PageId) => {
@@ -91,10 +86,13 @@ export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
             <p>从 Pipeline 到 AI 运维，一站式完成。</p>
             <button>查看新手指南 <Icon name="chevron" size={13} /></button>
           </div>
-          <div className="sidebar-user">
-            <Avatar name="陈默" />
-            <div><strong>陈默</strong><span>平台管理员</span></div>
-            <Icon name="more" size={18} />
+          <div className="personal-area">
+            {personalOpen && <div className="personal-menu"><button><Icon name="user" size={15} />个人信息</button><button><Icon name="settings" size={15} />界面偏好</button><button><Icon name="back" size={15} />退出登录</button></div>}
+            <button className="sidebar-user" aria-label="个人设置" aria-expanded={personalOpen} onClick={() => setPersonalOpen(!personalOpen)}>
+              <Avatar name="陈默" />
+              <div><strong>陈默</strong><span>平台管理员</span></div>
+              <Icon name="more" size={18} />
+            </button>
           </div>
         </div>
       </aside>
@@ -112,6 +110,7 @@ export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
               <kbd>⌘ K</kbd>
             </label>
             <button className="icon-button notification-button" aria-label="通知"><Icon name="bell" size={19} /><span /></button>
+            <button className="workspace-settings-button" aria-label="工作空间设置" onClick={() => navigate('integrations')}><Icon name="settings" size={17} /><span>工作空间设置</span></button>
           </div>
         </header>
         <main className="main-content">{children}</main>
