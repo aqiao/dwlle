@@ -53,6 +53,8 @@
 | 租户与项目 | 控制平面租户、项目、环境；每客户独立数据平面 | 两个租户的产品元数据隔离测试通过；不提供自助开通 |
 | 认证与权限 | 一个 OIDC Provider；Admin/Developer/Viewer | 登录、登出、令牌校验和关键 API 权限测试通过 |
 | 自研 UI | 全部客户页面、自研 DAG、SQL IDE、资产、运行中心和管理页 | 核心流程无需 DS 原生 UI、iframe 或深链接 |
+| 分层模型 | 领域模型预留 Scenario/Solution；原型展示三层导航和安装流程 | 不影响 Pipeline 主链路，不实现生产场景调度或 Solution 安装 |
+| 公共接口 | `/api/v1`、OpenAPI、Controller 与 Application Service 分层 | 核心资源使用统一权限与审计，Web 不调用特权领域接口 |
 | 审计 | 登录、数据源、Pipeline 发布、运行/重跑、诊断操作 | 可查询操作者、时间、对象和结果，不记录密钥 |
 | 数据源 | MySQL、PostgreSQL 各一种连接配置；Secrets Manager 保存凭据 | 至少一种真实数据库跑通，另一种完成集成测试或明确标为未实测 |
 | 数据接入 | SeaTunnel 批量全量和追加写入 S3 Iceberg | 失败可重试，重复执行不产生非预期重复数据 |
@@ -74,7 +76,9 @@
 - Logo、主题色等静态 UI 配置；
 - Superset 外链或只读嵌入；
 - 第二种模型提供方；
-- 简单的数据量趋势图和运行时长趋势图。
+- 简单的数据量趋势图和运行时长趋势图；
+- Scenario 只读分组、跨 Pipeline 依赖和数据契约展示；
+- 只读 FastMCP 工具（Pipeline/Run/Dataset/已有诊断查询）。
 
 P1 不进入月末核心验收，不因完成 P1 而接受 P0 缺陷。
 
@@ -82,6 +86,8 @@ P1 不进入月末核心验收，不因完成 P1 而接受 P0 缺陷。
 
 - 实时 CDC、Flink、Kafka、Spark 默认执行路径；
 - Databricks、DataWorks、Glue、EMR、Redshift 适配；
+- 生产级 Scenario 调度、Solution 实际安装/升级及公开共享市场；
+- MCP 发布、运行、安装、授权、删除和自动修复等写操作；
 - 公开/付费组件市场、第三方任意代码上传、计费与分成；
 - 自动修复、自动扩容、容量/故障预测和完整 GC 分析；
 - SAML、SCIM、复杂 ABAC、列级权限和字段级血缘；

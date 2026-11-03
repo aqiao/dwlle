@@ -14,6 +14,8 @@
 | [0008](0008-scheduler-ui-split.md) | 调度界面：dwlle-web 做主路径，DS 原生界面做进阶运维 | 已被 0010 取代 |
 | [0009](0009-neutral-control-and-data-plane.md) | 平台中立的 SaaS 控制平面与开源数据平面 | 已接受 |
 | [0010](0010-self-owned-user-interface.md) | 客户可见界面全部由 dwlle 自研 | 已接受 |
+| [0011](0011-solution-scenario-pipeline.md) | 解决方案、业务场景与 Pipeline 三层抽象 | 已接受 |
+| [0012](0012-public-rest-and-fastmcp.md) | 公共 REST 与 FastMCP 共用应用服务 | 已接受 |
 
 模板：
 
