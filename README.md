@@ -12,6 +12,7 @@ AWS 首发、平台中立的 AI 原生数据开发平台。自研 SaaS 控制平
 | [docs/adr/](docs/adr/) | 架构决策记录（ADR），已定决策及理由 |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | 阶段计划与任务列表 |
 | [docs/PROJECT_PLAN_2026-11.md](docs/PROJECT_PLAN_2026-11.md) | 2026 年 11 月内部 Alpha 范围与倒排计划 |
+| [docs/BACKLOG.md](docs/BACKLOG.md) | 未立项的候选能力备忘，不影响当前计划 |
 | [web/README.md](web/README.md) | 高保真 UI 原型启动与页面路径 |
 | [docs/tasks/](docs/tasks/) | 可交给编码 agent 执行的任务说明 |
 | [AGENTS.md](AGENTS.md) | 编码 agent（Kimi Code 等）必须遵守的规则 |
