@@ -8,7 +8,8 @@ describe('dwlle UI prototype', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: '早上好，陈默' })).toBeInTheDocument()
+    expect(screen.queryByText('早上好，陈默')).not.toBeInTheDocument()
+    expect(screen.queryByText('AI 建议仅供辅助决策，不会自动执行')).not.toBeInTheDocument()
     expect(screen.getByText('云栖集团')).toBeInTheDocument()
     expect(screen.getByText('智能洞察')).toBeInTheDocument()
     expect(screen.queryByText('企业工作空间')).not.toBeInTheDocument()

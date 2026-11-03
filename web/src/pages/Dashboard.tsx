@@ -1,7 +1,7 @@
 import { runs } from '../data'
 import type { PageId } from '../types'
 import { Icon } from '../components/Icon'
-import { Button, Card, PageHeader, ProgressBar, StatusBadge } from '../components/UI'
+import { Button, Card, ProgressBar, StatusBadge } from '../components/UI'
 
 interface DashboardProps {
   onNavigate: (page: PageId) => void
@@ -17,12 +17,7 @@ const metrics = [
 export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="page dashboard-page">
-      <PageHeader
-        eyebrow="2026 年 11 月 2 日 · 星期一"
-        title="早上好，陈默"
-        description="这里是零售事业部的数据运行情况，今天有 3 条告警需要关注。"
-        actions={<><Button icon="download">导出报告</Button><Button variant="primary" icon="plus" onClick={() => onNavigate('editor')}>新建 Pipeline</Button></>}
-      />
+      <div className="dashboard-header-actions"><Button icon="download">导出报告</Button><Button variant="primary" icon="plus" onClick={() => onNavigate('editor')}>新建 Pipeline</Button></div>
 
       <div className="metric-grid">
         {metrics.map((metric) => (
@@ -95,7 +90,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <div className="insight-number">02</div>
             <div><strong>夜间计算资源</strong><p>02:00–05:00 平均利用率仅 18%，可优化 Worker 扩缩容策略。</p><button>查看建议 <Icon name="chevron" size={13} /></button></div>
           </div>
-          <div className="ai-disclaimer"><Icon name="shield" size={13} />AI 建议仅供辅助决策，不会自动执行</div>
         </Card>
       </div>
     </div>
