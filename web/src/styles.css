@@ -1131,3 +1131,9 @@ body { font-size: 14px; }
 .enterprise-logo { width: 33px; height: 33px; display: grid; place-items: center; border-radius: 9px; color: #fff; background: linear-gradient(145deg, #6686e8, #415fc2); font-size: 16px; font-weight: 650; box-shadow: 0 3px 8px rgba(70,104,232,.14); }
 .enterprise-name { color: #1d2b42; font-size: 17px; font-weight: 650; letter-spacing: .2px; }
 .main-nav { padding-top: 10px; }
+
+/* Narrow card overflow fixes */
+.card { min-width: 0; }
+.ai-insight-head { flex-wrap: wrap; gap: 8px; min-width: 0; }
+.ai-insight-head .tag { flex-shrink: 0; white-space: nowrap; line-height: 1.4; }
+.ai-insight-head > span:first-child { flex-shrink: 0; }
