@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import type { PageId } from '../types'
 import { branding } from '../config/branding'
-import { Avatar, Tag } from './UI'
+import { Avatar } from './UI'
 import { Icon, type IconName } from './Icon'
 
 interface AppShellProps {
@@ -100,8 +100,6 @@ export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
         <header className="topbar">
           <div className="topbar-left">
             <button className="mobile-menu icon-button" aria-label="打开导航" onClick={() => setMobileOpen(true)}><Icon name="menu" /></button>
-            <div className="breadcrumb"><span>数据平台</span><Icon name="chevron" size={13} /><strong>零售事业部</strong></div>
-            <Tag tone="blue">生产环境</Tag>
           </div>
           <div className="topbar-right">
             <label className="global-search">

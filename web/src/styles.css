@@ -1142,3 +1142,18 @@ body { font-size: 14px; }
 
 /* Dashboard actions */
 .dashboard-header-actions { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 18px; }
+
+/* Dashboard consistency */
+.dashboard-header-actions { align-items: center; justify-content: space-between; }
+.dashboard-summary { display: flex; align-items: center; gap: 18px; color: #7c899b; font-size: 12px; }
+.dashboard-summary strong { color: #2f3d52; font-size: 14px; margin-right: 3px; }
+.dashboard-summary .summary-alert, .dashboard-summary .summary-alert strong { color: #cf626b; }
+.dashboard-bottom-grid { align-items: start; }
+.ai-insight-card { height: auto; padding-bottom: 14px; }
+.insight-item strong { font-size: 13px; }
+.insight-item p { font-size: 12px; line-height: 1.65; }
+.insight-item button, .insight-number { font-size: 11px; }
+@media (max-width: 760px) {
+  .dashboard-header-actions { align-items: flex-start; gap: 14px; }
+  .dashboard-summary { flex-wrap: wrap; gap: 8px 14px; }
+}
