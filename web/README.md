@@ -36,3 +36,7 @@ npm run lint
 npm test
 npm audit
 ```
+
+## 企业品牌
+
+品牌区不固定显示 dwlle 对味。示例企业名称与标识位于 `src/config/branding.ts`，可按实际企业修改；生产实现再由租户主题配置提供。

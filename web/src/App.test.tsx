@@ -9,6 +9,9 @@ describe('dwlle UI prototype', () => {
     render(<App />)
 
     expect(screen.getByRole('heading', { name: '早上好，陈默' })).toBeInTheDocument()
+    expect(screen.getByText('云栖集团')).toBeInTheDocument()
+    expect(screen.queryByText('企业工作空间')).not.toBeInTheDocument()
+    expect(screen.queryByText('dwlle')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /^数据源$/ }))
 
     expect(screen.getByRole('heading', { name: /^数据源$/ })).toBeInTheDocument()

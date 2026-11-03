@@ -1126,3 +1126,8 @@ body { font-size: 14px; }
 .card { box-shadow: var(--shadow); }
 .topbar { border-bottom-color: #e7ecf2; }
 .market-notice, .security-banner, .definition-binding-note { box-shadow: none; }
+
+/* Enterprise branding */
+.enterprise-logo { width: 33px; height: 33px; display: grid; place-items: center; border-radius: 9px; color: #fff; background: linear-gradient(145deg, #6686e8, #415fc2); font-size: 16px; font-weight: 650; box-shadow: 0 3px 8px rgba(70,104,232,.14); }
+.enterprise-name { color: #1d2b42; font-size: 17px; font-weight: 650; letter-spacing: .2px; }
+.main-nav { padding-top: 10px; }
