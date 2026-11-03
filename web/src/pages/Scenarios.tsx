@@ -22,7 +22,7 @@ export function Scenarios({ onOpenPipeline, onNotify }: { onOpenPipeline: (id: s
   return (
     <div className="page scenarios-page">
       <PageHeader eyebrow="业务级编排" title="业务场景" description="围绕业务目标组织 Pipeline、数据契约和整体 SLA。" actions={<><Button icon="download">导入场景</Button><Button variant="primary" icon="plus">新建场景</Button></>} />
-      <div className="scenario-project-bar"><div><span className="project-symbol"><Icon name="layers" size={19} /></span><div><span>所属项目</span><strong>零售经营分析</strong></div><Tag tone="blue">生产环境</Tag></div><div><span>场景</span><strong>3</strong><span>Pipeline</span><strong>12</strong><span>数据源</span><strong>3</strong></div></div>
+      <div className="scenario-workspace-bar"><div><span className="workspace-symbol"><Icon name="layers" size={19} /></span><div><span>所属工作空间</span><strong>零售经营分析</strong></div><Tag tone="blue">生产环境</Tag></div><div><span>场景</span><strong>3</strong><span>Pipeline</span><strong>12</strong><span>数据源</span><strong>3</strong></div></div>
       <div className="scenario-layout">
         <div className="scenario-list">
           {scenarios.map((scenario) => <button key={scenario.id} className={selectedId === scenario.id ? 'active' : ''} onClick={() => setSelectedId(scenario.id)}>

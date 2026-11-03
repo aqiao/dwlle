@@ -12,7 +12,7 @@ interface AppShellProps {
 
 const navigation: { label: string; items: { id: PageId; label: string; icon: IconName; badge?: string }[] }[] = [
   {
-    label: '我的工作空间',
+    label: '日常工作',
     items: [
       { id: 'dashboard', label: '工作台', icon: 'dashboard' },
       { id: 'scenarios', label: '业务场景', icon: 'pipeline' },

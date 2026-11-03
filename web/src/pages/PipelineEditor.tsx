@@ -90,7 +90,7 @@ export function PipelineEditor({ pipelineId, onBack, onNotify }: PipelineEditorP
         </div>
       </div>
       <div className="editor-meta">
-        <div><span>项目</span><strong>零售经营分析</strong></div><div><span>场景</span><strong>订单履约分析</strong></div><div><span>环境</span><strong><i className="env-dot" />生产环境</strong></div><div><span>调度</span><strong><Icon name="calendar" size={14} />每天 02:00</strong></div><div><span>负责人</span><strong>陈默</strong></div>
+        <div><span>工作空间</span><strong>零售经营分析</strong></div><div><span>场景</span><strong>订单履约分析</strong></div><div><span>环境</span><strong><i className="env-dot" />生产环境</strong></div><div><span>调度</span><strong><Icon name="calendar" size={14} />每天 02:00</strong></div><div><span>负责人</span><strong>陈默</strong></div>
         <button onClick={() => onNotify('调度设置已打开（原型）')}><Icon name="settings" size={15} />调度设置</button>
       </div>
       <div className={`editor-workspace ${configOpen ? '' : 'config-collapsed'}`}>
