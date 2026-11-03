@@ -12,7 +12,7 @@ export function Runs({ onNotify }: { onNotify: (message: string) => void }) {
 
   return (
     <div className="page runs-page">
-      <PageHeader eyebrow="运维中心" title="运行中心" description="查看运行实例、定位失败原因并跟踪任务恢复。" actions={<><Button icon="download">导出日志</Button><Button icon="refresh">刷新状态</Button></>} />
+      <PageHeader eyebrow="日常工作" title="运行中心" description="查看运行实例、定位失败原因并跟踪任务恢复。" actions={<><Button icon="download">导出日志</Button><Button icon="refresh">刷新状态</Button></>} />
       <div className="run-stat-grid">
         <Card><span className="run-stat-icon blue"><Icon name="runs" /></span><div><p>今日运行</p><strong>128</strong><small>较昨日 +12</small></div></Card>
         <Card><span className="run-stat-icon green"><Icon name="check" /></span><div><p>成功实例</p><strong>121</strong><small>成功率 94.5%</small></div></Card>
@@ -20,15 +20,15 @@ export function Runs({ onNotify }: { onNotify: (message: string) => void }) {
         <Card><span className="run-stat-icon red"><Icon name="alert" /></span><div><p>失败实例</p><strong>3</strong><small>待处理 2 条</small></div></Card>
       </div>
       <Card className="list-card run-list-card">
-        <div className="list-toolbar"><div className="toolbar-left"><label className="table-search"><Icon name="search" size={17} /><input aria-label="搜索运行实例" placeholder="搜索实例 ID 或 Pipeline" /></label><select aria-label="运行状态"><option>全部状态</option><option>失败</option><option>运行中</option><option>成功</option></select><Button icon="calendar" size="small">今天</Button></div><span className="muted-text">自动刷新 · 30s</span></div>
-        <div className="table-wrap"><table className="data-table"><thead><tr><th>实例 / Pipeline</th><th>状态</th><th>开始时间</th><th>耗时</th><th>触发方式</th><th>处理行数</th><th>版本</th></tr></thead><tbody>
-          {runs.map((run) => <tr key={run.id} className={`clickable-row ${selectedId === run.id ? 'selected-row' : ''}`} onClick={() => { setSelectedId(run.id); setShowAi(run.status === 'failed') }}><td><div className="run-name-cell"><strong>{run.pipeline}</strong><small>{run.id}</small></div></td><td><StatusBadge status={run.status} /></td><td>{run.startedAt}</td><td>{run.duration}</td><td>{run.trigger}</td><td>{run.rows}</td><td><Tag>{run.version}</Tag></td></tr>)}
+        <div className="list-toolbar"><div className="toolbar-left"><label className="table-search"><Icon name="search" size={17} /><input aria-label="搜索运行实例" placeholder="搜索实例 ID 或 工作流" /></label><select aria-label="运行状态"><option>全部状态</option><option>失败</option><option>运行中</option><option>成功</option></select><Button icon="calendar" size="small">今天</Button></div><span className="muted-text">自动刷新 · 30s</span></div>
+        <div className="table-wrap"><table className="data-table"><thead><tr><th>实例 / 工作流</th><th>状态</th><th>开始时间</th><th>耗时</th><th>触发方式</th><th>处理行数</th><th>版本</th></tr></thead><tbody>
+          {runs.map((run) => <tr key={run.id} className={`clickable-row ${selectedId === run.id ? 'selected-row' : ''}`} onClick={() => { setSelectedId(run.id); setShowAi(run.status === 'failed') }}><td><div className="run-name-cell"><strong>{run.workflow}</strong><small>{run.id}</small></div></td><td><StatusBadge status={run.status} /></td><td>{run.startedAt}</td><td>{run.duration}</td><td>{run.trigger}</td><td>{run.rows}</td><td><Tag>{run.version}</Tag></td></tr>)}
         </tbody></table></div>
       </Card>
 
       <Card className="run-detail-card">
         <div className="run-detail-header">
-          <div><div className="run-detail-title"><h2>{selected.pipeline}</h2><StatusBadge status={selected.status} /></div><p>{selected.id} · {selected.startedAt} · {selected.version}</p></div>
+          <div><div className="run-detail-title"><h2>{selected.workflow}</h2><StatusBadge status={selected.status} /></div><p>{selected.id} · {selected.startedAt} · {selected.version}</p></div>
           <div className="page-actions">{failed && <Button variant="primary" icon="sparkles" onClick={() => setShowAi(!showAi)}>AI 诊断</Button>}<Button icon="refresh" onClick={() => onNotify('已创建重跑实例（原型）')}>重跑</Button><button className="icon-button" aria-label="更多运行操作"><Icon name="more" /></button></div>
         </div>
         <div className="run-flow" aria-label="任务节点运行状态">
@@ -46,7 +46,7 @@ export function Runs({ onNotify }: { onNotify: (message: string) => void }) {
         <div className={`run-bottom-panel ${showAi && failed ? 'with-ai' : ''}`}>
           <div className="log-panel">
             <div className="log-tabs"><button className={logTab === 'error' ? 'active' : ''} onClick={() => setLogTab('error')}>错误日志 <span>1</span></button><button className={logTab === 'all' ? 'active' : ''} onClick={() => setLogTab('all')}>全部日志</button><button className={logTab === 'metrics' ? 'active' : ''} onClick={() => setLogTab('metrics')}>运行指标</button><div><button aria-label="复制日志"><Icon name="copy" size={15} /></button><button aria-label="下载日志"><Icon name="download" size={15} /></button></div></div>
-            {logTab === 'metrics' ? <div className="log-metrics"><div><span>峰值内存</span><strong>18.6 GB</strong></div><div><span>CPU 时间</span><strong>6m 42s</strong></div><div><span>扫描数据</span><strong>284 GB</strong></div><div><span>Shuffle 数据</span><strong>92 GB</strong></div></div> : <pre className="log-content"><code>{logTab === 'error' ? `[2026-11-02 09:20:41] [ERROR] TrinoQueryException\nQuery 20261102_092041_01842 failed\n\nJAVA_HEAP_SPACE: Exceeded memory limit of 18GB\n  at io.trino.operator.JoinOperator.buildHashTable(JoinOperator.java:184)\n  at io.trino.operator.PipelineDriver.process(PipelineDriver.java:392)\n\nTask: behavior_profile_join\nStage: stage-3 / task-17\nRows processed: 1,284,920` : `[2026-11-02 09:18:32] [INFO] Starting workflow run-20261102-0918\n[2026-11-02 09:18:34] [INFO] Version: v12 / trigger: schedule\n[2026-11-02 09:19:14] [INFO] Source extraction completed: 1.2M rows\n[2026-11-02 09:19:52] [INFO] Data cleaning completed\n[2026-11-02 09:20:41] [ERROR] JAVA_HEAP_SPACE: Exceeded memory limit`}</code></pre>}
+            {logTab === 'metrics' ? <div className="log-metrics"><div><span>峰值内存</span><strong>18.6 GB</strong></div><div><span>CPU 时间</span><strong>6m 42s</strong></div><div><span>扫描数据</span><strong>284 GB</strong></div><div><span>Shuffle 数据</span><strong>92 GB</strong></div></div> : <pre className="log-content"><code>{logTab === 'error' ? `[2026-11-02 09:20:41] [ERROR] TrinoQueryException\nQuery 20261102_092041_01842 failed\n\nJAVA_HEAP_SPACE: Exceeded memory limit of 18GB\n  at io.trino.operator.JoinOperator.buildHashTable(JoinOperator.java:184)\n  at io.trino.operator.工作流Driver.process(工作流Driver.java:392)\n\nTask: behavior_profile_join\nStage: stage-3 / task-17\nRows processed: 1,284,920` : `[2026-11-02 09:18:32] [INFO] Starting workflow run-20261102-0918\n[2026-11-02 09:18:34] [INFO] Version: v12 / trigger: schedule\n[2026-11-02 09:19:14] [INFO] Source extraction completed: 1.2M rows\n[2026-11-02 09:19:52] [INFO] Data cleaning completed\n[2026-11-02 09:20:41] [ERROR] JAVA_HEAP_SPACE: Exceeded memory limit`}</code></pre>}
           </div>
           {showAi && failed && <aside className="diagnosis-panel">
             <div className="diagnosis-heading"><div><span><Icon name="sparkles" size={18} /></span><strong>AI 失败诊断</strong><Tag tone="purple">只读</Tag></div><button className="icon-button" aria-label="关闭 AI 诊断" onClick={() => setShowAi(false)}><Icon name="close" size={16} /></button></div>

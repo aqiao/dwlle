@@ -3,47 +3,47 @@ import { Icon } from '../components/Icon'
 import { Avatar, Button, Card, PageHeader, StatusBadge, Tag } from '../components/UI'
 
 const scenarios = [
-  { id: 'fulfillment', name: '订单履约分析', description: '从订单与库存接入到履约宽表和质量检查', status: 'failed' as const, pipelines: 4, owner: '陈默', sla: '每天 06:00 前就绪' },
-  { id: 'marketing', name: '营销效果分析', description: '活动投放、订单转化与营销日报', status: 'success' as const, pipelines: 3, owner: '林夏', sla: '每天 08:30 前就绪' },
-  { id: 'customer', name: '客户经营分析', description: '客户主数据、画像和生命周期分析', status: 'running' as const, pipelines: 5, owner: '周宁', sla: '每小时更新' },
+  { id: 'fulfillment', name: '订单履约分析', description: '从订单与库存接入到履约宽表和质量检查', status: 'failed' as const, workflows: 4, owner: '陈默', sla: '每天 06:00 前就绪' },
+  { id: 'marketing', name: '营销效果分析', description: '活动投放、订单转化与营销日报', status: 'success' as const, workflows: 3, owner: '林夏', sla: '每天 08:30 前就绪' },
+  { id: 'customer', name: '客户经营分析', description: '客户主数据、画像和生命周期分析', status: 'running' as const, workflows: 5, owner: '周宁', sla: '每小时更新' },
 ]
 
-const pipelineFlow = [
+const workflowFlow = [
   { name: '订单每日入湖', engine: 'SeaTunnel', status: 'success', time: '02:00 · 12m', output: 'raw.shop_orders' },
   { name: '库存每日入湖', engine: 'SeaTunnel', status: 'success', time: '02:10 · 8m', output: 'raw.inventory' },
   { name: '履约宽表加工', engine: 'Trino SQL', status: 'failed', time: '04:00 · 4m', output: 'curated.fulfillment' },
   { name: '履约质量检查', engine: 'Quality', status: 'paused', time: '等待上游契约', output: 'quality.fulfillment' },
 ]
 
-export function Scenarios({ onOpenPipeline, onNotify }: { onOpenPipeline: (id: string) => void; onNotify: (message: string) => void }) {
+export function Scenarios({ onOpenWorkflow, onNotify }: { onOpenWorkflow: (id: string) => void; onNotify: (message: string) => void }) {
   const [selectedId, setSelectedId] = useState('fulfillment')
   const selected = scenarios.find((scenario) => scenario.id === selectedId) ?? scenarios[0]
 
   return (
     <div className="page scenarios-page">
-      <PageHeader eyebrow="业务级编排" title="业务场景" description="围绕业务目标组织 Pipeline、数据契约和整体 SLA。" actions={<><Button icon="download">导入场景</Button><Button variant="primary" icon="plus">新建场景</Button></>} />
-      <div className="scenario-project-bar"><div><span className="project-symbol"><Icon name="layers" size={19} /></span><div><span>所属项目</span><strong>零售经营分析</strong></div><Tag tone="blue">生产环境</Tag></div><div><span>场景</span><strong>3</strong><span>Pipeline</span><strong>12</strong><span>数据源</span><strong>3</strong></div></div>
+      <PageHeader eyebrow="日常工作" title="业务场景" description="围绕业务目标组织 工作流、数据契约和整体 SLA。" actions={<><Button icon="download">导入场景</Button><Button variant="primary" icon="plus">新建场景</Button></>} />
+      <div className="scenario-workspace-bar"><div><span className="workspace-symbol"><Icon name="layers" size={19} /></span><div><span>所属工作空间</span><strong>零售经营分析</strong></div><Tag tone="blue">生产环境</Tag></div><div><span>场景</span><strong>3</strong><span>工作流</span><strong>12</strong><span>数据源</span><strong>3</strong></div></div>
       <div className="scenario-layout">
         <div className="scenario-list">
           {scenarios.map((scenario) => <button key={scenario.id} className={selectedId === scenario.id ? 'active' : ''} onClick={() => setSelectedId(scenario.id)}>
-            <div className="scenario-list-top"><StatusBadge status={scenario.status} /><span>{scenario.pipelines} 条 Pipeline</span></div><strong>{scenario.name}</strong><p>{scenario.description}</p><div className="scenario-list-meta"><span><Avatar name={scenario.owner} size="small" />{scenario.owner}</span><span><Icon name="clock" size={13} />{scenario.sla}</span></div>
+            <div className="scenario-list-top"><StatusBadge status={scenario.status} /><span>{scenario.workflows} 条 工作流</span></div><strong>{scenario.name}</strong><p>{scenario.description}</p><div className="scenario-list-meta"><span><Avatar name={scenario.owner} size="small" />{scenario.owner}</span><span><Icon name="clock" size={13} />{scenario.sla}</span></div>
           </button>)}
-          <div className="scenario-list-tip"><Icon name="sparkles" size={16} /><p>场景回答“业务是否就绪”，Pipeline 回答“任务如何执行”。</p></div>
+          <div className="scenario-list-tip"><Icon name="sparkles" size={16} /><p>场景回答“业务是否就绪”，工作流 回答“任务如何执行”。</p></div>
         </div>
         <div className="scenario-detail">
           <Card className="scenario-overview">
             <div className="scenario-title-row"><div><div className="scenario-title"><h2>{selected.name}</h2><StatusBadge status={selected.status} /></div><p>{selected.description}</p></div><div className="page-actions"><Button icon="settings">场景设置</Button><Button variant="primary" icon="play" onClick={() => onNotify(`${selected.name} 已加入运行队列（原型）`)}>运行场景</Button></div></div>
-            <div className="scenario-kpis"><div><span>整体状态</span><strong className="text-danger">部分失败</strong></div><div><span>Pipeline</span><strong>2 成功 · 1 失败 · 1 阻塞</strong></div><div><span>业务 SLA</span><strong>{selected.sla}</strong></div><div><span>负责人</span><strong>{selected.owner}</strong></div></div>
+            <div className="scenario-kpis"><div><span>整体状态</span><strong className="text-danger">部分失败</strong></div><div><span>工作流</span><strong>2 成功 · 1 失败 · 1 阻塞</strong></div><div><span>业务 SLA</span><strong>{selected.sla}</strong></div><div><span>负责人</span><strong>{selected.owner}</strong></div></div>
           </Card>
           <Card className="scenario-flow-card">
-            <div className="card-header"><div><h2>跨 Pipeline 依赖</h2><p>通过数据契约协调，而不只是上游任务成功</p></div><div className="scenario-legend"><span><i className="contract-dot" />数据契约</span><Button variant="ghost" size="small">编辑依赖</Button></div></div>
+            <div className="card-header"><div><h2>跨 工作流 依赖</h2><p>通过数据契约协调，而不只是上游任务成功</p></div><div className="scenario-legend"><span><i className="contract-dot" />数据契约</span><Button variant="ghost" size="small">编辑依赖</Button></div></div>
             <div className="scenario-flow">
               <div className="scenario-parallel">
-                {pipelineFlow.slice(0, 2).map((pipeline) => <button className="scenario-pipeline-node node-success" key={pipeline.name} onClick={() => onOpenPipeline('p-001')}><span className="scenario-node-icon"><Icon name="database" size={19} /></span><span><strong>{pipeline.name}</strong><small>{pipeline.engine} · {pipeline.time}</small><code>{pipeline.output}</code></span><StatusBadge status="success" /></button>)}
+                {workflowFlow.slice(0, 2).map((workflow) => <button className="scenario-workflow-node node-success" key={workflow.name} onClick={() => onOpenWorkflow('p-001')}><span className="scenario-node-icon"><Icon name="database" size={19} /></span><span><strong>{workflow.name}</strong><small>{workflow.engine} · {workflow.time}</small><code>{workflow.output}</code></span><StatusBadge status="success" /></button>)}
               </div>
               <div className="scenario-contract"><Icon name="shield" size={15} /><span><strong>数据契约</strong>orders + inventory 当天分区就绪，质量通过，新鲜度 &lt; 2h</span><Tag tone="green">已满足</Tag></div>
               <div className="scenario-downstream">
-                {pipelineFlow.slice(2).map((pipeline) => <button className={`scenario-pipeline-node node-${pipeline.status}`} key={pipeline.name} onClick={() => onOpenPipeline('p-001')}><span className="scenario-node-icon"><Icon name={pipeline.engine === 'Quality' ? 'quality' : 'sql'} size={19} /></span><span><strong>{pipeline.name}</strong><small>{pipeline.engine} · {pipeline.time}</small><code>{pipeline.output}</code></span><StatusBadge status={pipeline.status as 'failed'} /></button>)}
+                {workflowFlow.slice(2).map((workflow) => <button className={`scenario-workflow-node node-${workflow.status}`} key={workflow.name} onClick={() => onOpenWorkflow('p-001')}><span className="scenario-node-icon"><Icon name={workflow.engine === 'Quality' ? 'quality' : 'sql'} size={19} /></span><span><strong>{workflow.name}</strong><small>{workflow.engine} · {workflow.time}</small><code>{workflow.output}</code></span><StatusBadge status={workflow.status as 'failed'} /></button>)}
               </div>
             </div>
           </Card>

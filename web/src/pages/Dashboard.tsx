@@ -8,8 +8,8 @@ interface DashboardProps {
 }
 
 const metrics = [
-  { label: '运行中 Pipeline', value: '24', note: '较昨日 +3', icon: 'pipeline' as const, tone: 'blue' },
-  { label: '今日任务成功率', value: '96.8%', note: '近 7 天 +1.2%', icon: 'check' as const, tone: 'green' },
+  { label: '运行中 工作流', value: '24', note: '较昨日 +3', icon: 'workflow' as const, tone: 'blue' },
+  { label: '今日工作流成功率', value: '96.8%', note: '121/125 个已完成实例成功', icon: 'check' as const, tone: 'green' },
   { label: '待处理告警', value: '3', note: '1 条高优先级', icon: 'alert' as const, tone: 'orange' },
   { label: '本月资源成本', value: '¥1,284', note: '预算使用 42%', icon: 'arrowUp' as const, tone: 'purple' },
 ]
@@ -18,10 +18,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="page dashboard-page">
       <PageHeader
-        eyebrow="2026 年 11 月 2 日 · 星期一"
-        title="早上好，陈默"
-        description="这里是零售事业部的数据运行情况，今天有 3 条告警需要关注。"
-        actions={<><Button icon="download">导出报告</Button><Button variant="primary" icon="plus" onClick={() => onNavigate('editor')}>新建 Pipeline</Button></>}
+        eyebrow="日常工作"
+        title="工作台"
+        description="汇总当前工作空间的任务、资源与运行状态。"
+        actions={<Button icon="download">导出报告</Button>}
       />
 
       <div className="metric-grid">
@@ -71,13 +71,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       <div className="dashboard-bottom-grid">
         <Card className="recent-runs-card">
-          <div className="card-header"><div><h2>最近运行</h2><p>Pipeline 实例的最新状态</p></div><Button variant="ghost" size="small" onClick={() => onNavigate('runs')}>查看全部 <Icon name="chevron" size={14} /></Button></div>
+          <div className="card-header"><div><h2>最近运行</h2><p>工作流 实例的最新状态</p></div><Button variant="ghost" size="small" onClick={() => onNavigate('runs')}>查看全部 <Icon name="chevron" size={14} /></Button></div>
           <div className="table-wrap">
             <table className="data-table compact-table">
-              <thead><tr><th>Pipeline</th><th>状态</th><th>开始时间</th><th>耗时</th><th>触发方式</th></tr></thead>
+              <thead><tr><th>工作流</th><th>状态</th><th>开始时间</th><th>耗时</th><th>触发方式</th></tr></thead>
               <tbody>{runs.slice(0, 4).map((run) => (
                 <tr key={run.id} onClick={() => onNavigate('runs')} className="clickable-row">
-                  <td><div className="pipeline-cell"><span className="table-icon"><Icon name="pipeline" size={16} /></span><strong>{run.pipeline}</strong></div></td>
+                  <td><div className="workflow-cell"><span className="table-icon"><Icon name="workflow" size={16} /></span><strong>{run.workflow}</strong></div></td>
                   <td><StatusBadge status={run.status} /></td><td>{run.startedAt.slice(5, 16)}</td><td>{run.duration}</td><td>{run.trigger}</td>
                 </tr>
               ))}</tbody>
@@ -86,8 +86,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         </Card>
 
         <Card className="ai-insight-card">
-          <div className="ai-insight-head"><div><h2>AI 运维洞察</h2><p>基于近 7 天运行指标和资源使用分析</p></div><span><Icon name="sparkles" size={19} /></span></div>
-          <h3 className="ai-opportunity-title">发现 2 项可优化机会</h3>
+          <div className="ai-insight-head"><div><h2>智能洞察</h2><p>发现 2 项可优化机会</p></div><span><Icon name="sparkles" size={19} /></span></div>
           <div className="insight-item">
             <div className="insight-number">01</div>
             <div><strong>用户行为宽表加工</strong><p>近 3 次运行在 Shuffle 阶段耗时增加 42%，建议检查数据倾斜。</p><button onClick={() => onNavigate('runs')}>查看诊断 <Icon name="chevron" size={13} /></button></div>
@@ -96,16 +95,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <div className="insight-number">02</div>
             <div><strong>夜间计算资源</strong><p>02:00–05:00 平均利用率仅 18%，可优化 Worker 扩缩容策略。</p><button>查看建议 <Icon name="chevron" size={13} /></button></div>
           </div>
-          <div className="ai-disclaimer"><Icon name="shield" size={13} />AI 建议仅供辅助决策，不会自动执行</div>
         </Card>
-      </div>
-
-      <div className="quick-links">
-        <span>快速开始</span>
-        <button onClick={() => onNavigate('editor')}><Icon name="plus" size={16} />创建 Pipeline</button>
-        <button onClick={() => onNavigate('sql')}><Icon name="sql" size={16} />编写 SQL</button>
-        <button onClick={() => onNavigate('sources')}><Icon name="database" size={16} />接入数据源</button>
-        <button onClick={() => onNavigate('assets')}><Icon name="assets" size={16} />浏览数据资产</button>
       </div>
     </div>
   )

@@ -1,8 +1,8 @@
 # dwlle · 对味
 
-AWS 首发、平台中立的 AI 原生数据开发平台。自研 SaaS 控制平面和全部客户界面，以 DolphinScheduler、SeaTunnel、Trino 和 Iceberg 构成开源数据平面，通过解决方案、业务场景和 Pipeline 三层抽象降低使用门槛，并原生提供公共 REST 与 FastMCP 集成。
+AWS 首发、平台中立的 AI 原生数据开发平台。自研 SaaS 控制平面和全部客户界面，以 DolphinScheduler、SeaTunnel、Trino 和 Iceberg 构成开源数据平面，通过解决方案、业务场景和 Workflow 三层抽象降低使用门槛，并原生提供公共 REST 与 FastMCP 集成。
 
-> 状态：内部 Alpha 实施阶段（2026-11）。当前基线为 ADR-0009～0012 和 11 月项目计划；已有高保真 UI 原型，平台后端尚未实现。
+> 状态：内部 Alpha 实施阶段（2026-11）。当前基线为 ADR-0009～0015 和 11 月项目计划；已有高保真 UI 原型，平台后端尚未实现。
 
 ## 文档导航
 

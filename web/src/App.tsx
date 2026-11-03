@@ -7,8 +7,8 @@ import { Solutions } from './pages/Solutions'
 import { TemplateMarket } from './pages/TemplateMarket'
 import { Installed } from './pages/Installed'
 import { Scenarios } from './pages/Scenarios'
-import { Pipelines } from './pages/Pipelines'
-import { PipelineEditor } from './pages/PipelineEditor'
+import { Workflows } from './pages/Workflows'
+import { WorkflowEditor } from './pages/WorkflowEditor'
 import { Runs } from './pages/Runs'
 import { SqlWorkspace } from './pages/SqlWorkspace'
 import { Assets } from './pages/Assets'
@@ -17,7 +17,7 @@ import { Integrations } from './pages/Integrations'
 
 export default function App() {
   const [page, setPage] = useState<PageId>('dashboard')
-  const [pipelineId, setPipelineId] = useState('p-001')
+  const [workflowId, setWorkflowId] = useState('p-001')
   const [toast, setToast] = useState('')
 
   const notify = (message: string) => {
@@ -25,8 +25,8 @@ export default function App() {
     window.setTimeout(() => setToast(''), 3200)
   }
 
-  const openPipeline = (id: string) => {
-    setPipelineId(id)
+  const openWorkflow = (id: string) => {
+    setWorkflowId(id)
     setPage('editor')
   }
 
@@ -38,20 +38,20 @@ export default function App() {
     case 'scenario-templates':
       content = <TemplateMarket kind="scenario" onNotify={notify} />
       break
-    case 'pipeline-templates':
-      content = <TemplateMarket kind="pipeline" onNotify={notify} />
+    case 'workflow-templates':
+      content = <TemplateMarket kind="workflow" onNotify={notify} />
       break
     case 'installed':
       content = <Installed onOpenWorkspace={() => setPage('scenarios')} onNotify={notify} />
       break
     case 'scenarios':
-      content = <Scenarios onOpenPipeline={openPipeline} onNotify={notify} />
+      content = <Scenarios onOpenWorkflow={openWorkflow} onNotify={notify} />
       break
-    case 'pipelines':
-      content = <Pipelines onOpen={openPipeline} onNotify={notify} />
+    case 'workflows':
+      content = <Workflows onOpen={openWorkflow} onNotify={notify} />
       break
     case 'editor':
-      content = <PipelineEditor pipelineId={pipelineId} onBack={() => setPage('pipelines')} onNotify={notify} />
+      content = <WorkflowEditor workflowId={workflowId} onBack={() => setPage('workflows')} onNotify={notify} />
       break
     case 'runs':
       content = <Runs onNotify={notify} />

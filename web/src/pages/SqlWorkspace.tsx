@@ -29,7 +29,7 @@ export function SqlWorkspace({ onNotify }: { onNotify: (message: string) => void
 
   return (
     <div className="sql-page">
-      <div className="sql-header"><div><div className="eyebrow">数据开发</div><h1>SQL 工作台</h1></div><div className="page-actions"><Button icon="clock">查询历史</Button><Button icon="plus" onClick={() => onNotify('已保存为 Pipeline SQL 节点（原型）')}>保存为 Pipeline 节点</Button><Button variant="primary" icon="play" onClick={execute}>运行查询 <kbd>⌘ ↵</kbd></Button></div></div>
+      <div className="sql-header"><div><div className="eyebrow">日常工作</div><h1>SQL 工作台</h1></div><div className="page-actions"><Button icon="clock">查询历史</Button><Button icon="plus" onClick={() => onNotify('已保存为 工作流 SQL 节点（原型）')}>保存为 工作流 节点</Button><Button variant="primary" icon="play" onClick={execute}>运行查询 <kbd>⌘ ↵</kbd></Button></div></div>
       <div className={`sql-workspace ${treeOpen ? '' : 'tree-collapsed'}`}>
         <aside className="schema-panel">
           <div className="schema-heading"><strong>数据资源</strong><button className="icon-button" aria-label="刷新数据资源"><Icon name="refresh" size={15} /></button></div>

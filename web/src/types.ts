@@ -2,10 +2,10 @@ export type PageId =
   | 'dashboard'
   | 'solutions'
   | 'scenario-templates'
-  | 'pipeline-templates'
+  | 'workflow-templates'
   | 'installed'
   | 'scenarios'
-  | 'pipelines'
+  | 'workflows'
   | 'editor'
   | 'runs'
   | 'sql'
@@ -15,7 +15,7 @@ export type PageId =
 
 export type Status = 'success' | 'running' | 'failed' | 'paused' | 'draft' | 'warning'
 
-export interface Pipeline {
+export interface Workflow {
   id: string
   name: string
   description: string
@@ -30,7 +30,7 @@ export interface Pipeline {
 
 export interface RunInstance {
   id: string
-  pipeline: string
+  workflow: string
   status: Status
   startedAt: string
   duration: string

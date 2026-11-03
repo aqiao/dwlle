@@ -8,29 +8,39 @@ describe('dwlle UI prototype', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: '早上好，陈默' })).toBeInTheDocument()
+    expect(screen.queryByText('早上好，陈默')).not.toBeInTheDocument()
+    expect(screen.queryByText('AI 建议仅供辅助决策，不会自动执行')).not.toBeInTheDocument()
     expect(screen.getByText('云栖集团')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '工作台' })).toBeInTheDocument()
+    expect(screen.getByText('汇总当前工作空间的任务、资源与运行状态。')).toBeInTheDocument()
+    expect(screen.getByText('智能洞察')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '运行场景' })).not.toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: '切换工作空间' })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: '切换环境' })).toHaveValue('生产环境')
+    expect(screen.queryByText('数据平台')).not.toBeInTheDocument()
     expect(screen.queryByText('企业工作空间')).not.toBeInTheDocument()
     expect(screen.queryByText('dwlle')).not.toBeInTheDocument()
+    expect(screen.queryByText('快速开始')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '用户菜单' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /^数据源$/ }))
 
     expect(screen.getByRole('heading', { name: /^数据源$/ })).toBeInTheDocument()
     expect(screen.getByText('mysql-shop-production')).toBeInTheDocument()
   })
 
-  it('opens a pipeline and publishes a new version', async () => {
+  it('opens a workflow and publishes a new version', async () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(screen.getByRole('button', { name: /^Pipeline$/ }))
+    await user.click(screen.getByRole('button', { name: /^工作流$/ }))
     await user.click(screen.getByRole('button', { name: /业务库订单增量接入/ }))
     expect(screen.getByRole('heading', { name: '电商订单每日入湖' })).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: '发布 Pipeline' }))
-    expect(screen.getByRole('dialog', { name: '发布 Pipeline v9' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '发布 工作流' }))
+    expect(screen.getByRole('dialog', { name: '发布 工作流 v9' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '确认发布' }))
 
-    expect(screen.getByRole('status')).toHaveTextContent('Pipeline v9 发布成功（原型）')
+    expect(screen.getByRole('status')).toHaveTextContent('工作流 v9 发布成功（原型）')
     expect(screen.getByText('已发布 v9')).toBeInTheDocument()
   })
 
@@ -75,12 +85,12 @@ describe('dwlle UI prototype', () => {
     expect(screen.getByRole('status')).toHaveTextContent('解决方案安装任务已创建（原型）')
   })
 
-  it('navigates from a business scenario to its pipeline', async () => {
+  it('navigates from a business scenario to its workflow', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     await user.click(screen.getByRole('button', { name: /^业务场景$/ }))
-    expect(screen.getByText('跨 Pipeline 依赖')).toBeInTheDocument()
+    expect(screen.getByText('跨 工作流 依赖')).toBeInTheDocument()
     expect(screen.getByText('业务就绪条件')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /订单每日入湖SeaTunnel/ }))
 
@@ -92,7 +102,7 @@ describe('dwlle UI prototype', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(screen.getByRole('button', { name: /^API 与 MCP$/ }))
+    await user.click(screen.getByRole('button', { name: '工作空间设置' }))
     expect(screen.getByText('FastMCP Server')).toBeInTheDocument()
     expect(screen.getByText('scenario.get_status')).toBeInTheDocument()
 
@@ -117,7 +127,17 @@ describe('dwlle UI prototype', () => {
 
     await user.click(screen.getByRole('button', { name: /^已安装与更新$/ }))
     expect(screen.getByText('模板更新不会直接覆盖你的实例')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: '前往我的工作空间' }))
+    await user.click(screen.getByRole('button', { name: '前往日常工作' }))
     expect(screen.getByRole('heading', { name: '业务场景' })).toBeInTheDocument()
+  })
+
+  it('opens personal settings from the sidebar user area', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: '个人设置' }))
+    expect(screen.getByRole('button', { name: '个人信息' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '界面偏好' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '退出登录' })).toBeInTheDocument()
   })
 })
