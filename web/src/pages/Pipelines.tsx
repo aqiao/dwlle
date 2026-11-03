@@ -19,7 +19,7 @@ export function Pipelines({ onOpen, onNotify }: PipelinesProps) {
   return (
     <div className="page pipelines-page">
       <PageHeader
-        eyebrow="数据开发"
+        eyebrow="日常工作"
         title="Pipeline"
         description="编排、发布和监控你的数据工作流。"
         actions={<><Button icon="download">导入模板</Button><Button variant="primary" icon="plus" onClick={() => onOpen('p-001')}>新建 Pipeline</Button></>}

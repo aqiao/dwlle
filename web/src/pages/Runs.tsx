@@ -12,7 +12,7 @@ export function Runs({ onNotify }: { onNotify: (message: string) => void }) {
 
   return (
     <div className="page runs-page">
-      <PageHeader eyebrow="运维中心" title="运行中心" description="查看运行实例、定位失败原因并跟踪任务恢复。" actions={<><Button icon="download">导出日志</Button><Button icon="refresh">刷新状态</Button></>} />
+      <PageHeader eyebrow="日常工作" title="运行中心" description="查看运行实例、定位失败原因并跟踪任务恢复。" actions={<><Button icon="download">导出日志</Button><Button icon="refresh">刷新状态</Button></>} />
       <div className="run-stat-grid">
         <Card><span className="run-stat-icon blue"><Icon name="runs" /></span><div><p>今日运行</p><strong>128</strong><small>较昨日 +12</small></div></Card>
         <Card><span className="run-stat-icon green"><Icon name="check" /></span><div><p>成功实例</p><strong>121</strong><small>成功率 94.5%</small></div></Card>

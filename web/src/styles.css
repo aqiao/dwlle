@@ -1157,3 +1157,20 @@ body { font-size: 14px; }
   .dashboard-header-actions { align-items: flex-start; gap: 14px; }
   .dashboard-summary { flex-wrap: wrap; gap: 8px 14px; }
 }
+
+/* Compact topbar and workspace selector */
+.topbar { height: 56px; padding: 0 20px; }
+.brand { height: 56px; }
+.editor-page, .sql-page { height: calc(100vh - 56px); min-height: 600px; }
+.workspace-select { display: flex; align-items: center; gap: 8px; color: #8491a3; font-size: 11px; }
+.workspace-select select { height: 32px; min-width: 150px; padding: 0 28px 0 10px; border: 1px solid #e0e6ee; border-radius: 6px; color: #44546a; background: #fff; font-size: 11px; }
+.dashboard-summary { gap: 12px; }
+.dashboard-stat { display: flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; background: #fff; box-shadow: var(--shadow); }
+.dashboard-stat .summary-icon { width: 29px; height: 29px; font-style: normal; }
+.dashboard-stat > span { display: flex; flex-direction: column; gap: 2px; color: #8591a2; font-size: 9px; }
+.dashboard-stat strong { color: #2c3b51; font-size: 14px; margin: 0; }
+@media (max-width: 760px) {
+  .workspace-select > span { display: none; }
+  .workspace-select select { min-width: 125px; }
+  .dashboard-stat { padding: 6px 8px; }
+}

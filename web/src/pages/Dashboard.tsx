@@ -18,8 +18,12 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="page dashboard-page">
       <div className="dashboard-header-actions">
-        <div className="dashboard-summary"><span><strong>32</strong> 个工作空间</span><span><strong>24</strong> 个运行中</span><span className="summary-alert"><strong>3</strong> 条待处理告警</span></div>
-        <div className="page-actions"><Button icon="download">导出报告</Button><Button variant="primary" icon="plus" onClick={() => onNavigate('editor')}>新建工作空间</Button></div>
+        <div className="dashboard-summary">
+          <span className="dashboard-stat"><i className="summary-icon blue"><Icon name="layers" size={16} /></i><span>工作空间<strong>32</strong></span></span>
+          <span className="dashboard-stat"><i className="summary-icon green"><Icon name="runs" size={16} /></i><span>运行中<strong>24</strong></span></span>
+          <span className="dashboard-stat"><i className="summary-icon red"><Icon name="alert" size={16} /></i><span>待处理告警<strong>3</strong></span></span>
+        </div>
+        <div className="page-actions"><Button icon="download">导出报告</Button><Button variant="primary" icon="plus" onClick={() => onNavigate('editor')}>新建场景</Button></div>
       </div>
 
       <div className="metric-grid">
