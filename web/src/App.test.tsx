@@ -10,8 +10,11 @@ describe('dwlle UI prototype', () => {
 
     expect(screen.getByRole('heading', { name: '早上好，陈默' })).toBeInTheDocument()
     expect(screen.getByText('云栖集团')).toBeInTheDocument()
+    expect(screen.getByText('智能洞察')).toBeInTheDocument()
     expect(screen.queryByText('企业工作空间')).not.toBeInTheDocument()
     expect(screen.queryByText('dwlle')).not.toBeInTheDocument()
+    expect(screen.queryByText('快速开始')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '用户菜单' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /^数据源$/ }))
 
     expect(screen.getByRole('heading', { name: /^数据源$/ })).toBeInTheDocument()

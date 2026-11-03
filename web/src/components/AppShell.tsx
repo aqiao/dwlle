@@ -110,8 +110,6 @@ export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
               <kbd>⌘ K</kbd>
             </label>
             <button className="icon-button notification-button" aria-label="通知"><Icon name="bell" size={19} /><span /></button>
-            <span className="topbar-divider" />
-            <button className="topbar-avatar" aria-label="用户菜单"><Avatar name="陈默" size="small" /><Icon name="arrowDown" size={13} /></button>
           </div>
         </header>
         <main className="main-content">{children}</main>

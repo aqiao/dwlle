@@ -86,8 +86,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
         </Card>
 
         <Card className="ai-insight-card">
-          <div className="ai-insight-head"><div><h2>AI 运维洞察</h2><p>基于近 7 天运行指标和资源使用分析</p></div><span><Icon name="sparkles" size={19} /></span></div>
-          <h3 className="ai-opportunity-title">发现 2 项可优化机会</h3>
+          <div className="ai-insight-head"><div><h2>智能洞察</h2><p>发现 2 项可优化机会</p></div><span><Icon name="sparkles" size={19} /></span></div>
           <div className="insight-item">
             <div className="insight-number">01</div>
             <div><strong>用户行为宽表加工</strong><p>近 3 次运行在 Shuffle 阶段耗时增加 42%，建议检查数据倾斜。</p><button onClick={() => onNavigate('runs')}>查看诊断 <Icon name="chevron" size={13} /></button></div>
@@ -98,14 +97,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <div className="ai-disclaimer"><Icon name="shield" size={13} />AI 建议仅供辅助决策，不会自动执行</div>
         </Card>
-      </div>
-
-      <div className="quick-links">
-        <span>快速开始</span>
-        <button onClick={() => onNavigate('editor')}><Icon name="plus" size={16} />创建 Pipeline</button>
-        <button onClick={() => onNavigate('sql')}><Icon name="sql" size={16} />编写 SQL</button>
-        <button onClick={() => onNavigate('sources')}><Icon name="database" size={16} />接入数据源</button>
-        <button onClick={() => onNavigate('assets')}><Icon name="assets" size={16} />浏览数据资产</button>
       </div>
     </div>
   )
