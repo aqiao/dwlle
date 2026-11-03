@@ -17,6 +17,7 @@
 | [0011](0011-solution-scenario-pipeline.md) | 解决方案、业务场景与 Pipeline 三层抽象 | 已接受 |
 | [0012](0012-public-rest-and-fastmcp.md) | 公共 REST 与 FastMCP 共用应用服务 | 已接受 |
 | [0013](0013-workspace-and-solution-market.md) | 我的工作空间与方案市场分离 | 已接受 |
+| [0014](0014-workspace-terminology.md) | 将 Project 统一命名为 Workspace | 已接受 |
 
 模板：
 

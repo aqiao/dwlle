@@ -1,10 +1,10 @@
 # dwlle 架构设计
 
-版本：v0.4（2026-11-03） · 状态：已接受
+版本：v0.5（2026-11-03） · 状态：已接受
 目标版本：2026-11-30 内部 Alpha
-决策依据：ADR-0009～0013
+决策依据：ADR-0009～0014
 
-> v0.4 进一步明确我的工作空间与方案市场的边界：企业实例用于日常运行，共享模板用于按需安装和升级。历史设计与理由保留在 Git 和 ADR 中。
+> v0.5 将 Project 统一调整为 Workspace，并将导航“我的工作空间”改为“日常工作”。历史设计与理由保留在 Git 和 ADR 中。
 
 ## 1. 产品定位与目标
 
@@ -18,7 +18,7 @@
 
 1. **自研控制平面，复用执行引擎。** 不自研调度器、传输引擎、SQL 引擎或存储引擎。
 2. **客户界面全部自研。** DolphinScheduler 只作为后台执行引擎，不属于客户操作路径。
-3. **三层产品抽象。** Project 负责运行治理，Scenario 负责业务协作，Pipeline 负责技术执行；Solution 是可共享的项目级版本化模板。
+3. **三层产品抽象。** Workspace 负责运行治理，Scenario 负责业务协作，Pipeline 负责技术执行；Solution 是可共享的工作空间级版本化模板。
 4. **定义与环境绑定分离。** 共享定义不包含真实凭据或授权，安装时由目标管理员绑定并批准资源。
 5. **API-first。** dwlle-web 与外部应用共用公共领域 REST，FastMCP 与 REST 共用应用服务，不重复业务逻辑。
 6. **数据开放。** 默认数据格式为 Iceberg/Parquet，产品元数据可导出，不以专有格式锁定客户。
@@ -39,7 +39,7 @@ dwlle-web             外部应用                AI Agent
 └───────────────────┬──────────────┘
                     ▼
 ┌──────────────────── 应用服务层（自研） ───────────────────────┐
-│ Project / Scenario / Pipeline / Run / Dataset / Diagnosis    │
+│ Workspace / Scenario / Pipeline / Run / Dataset / Diagnosis    │
 │ Solution / Quality / 权限与 Operation                         │
 │                                                             │
 │ dwlle-web：Solution、Scenario、DAG、SQL、资产、运行与 AI 诊断   │
@@ -74,7 +74,7 @@ AWS 基础设施适配：EKS、EC2、RDS PostgreSQL、S3、ECR、Secrets Manager
 |---|---|---|---|
 | 前端 | React + TypeScript + Monaco | 全部客户界面、DAG、SQL、资产、运行和诊断 | 简单 DAG，不复刻 DS 全部能力 |
 | API | Python 3.12 + FastAPI | 产品 API、权限、审计、适配器、AI 工具 | 单区域部署 |
-| 产品数据库 | PostgreSQL | 租户、项目、定义、版本、资产、运行索引 | 不存客户业务数据 |
+| 产品数据库 | PostgreSQL | 租户、工作空间、定义、版本、资产、运行索引 | 不存客户业务数据 |
 | 身份 | Keycloak 或等价 OIDC Broker | 对接一个 OIDC Provider、登录和令牌 | 应用 RBAC 仍由 dwlle 管理 |
 | 调度 | DolphinScheduler 3.x | 定时、依赖、手动运行、重试、执行状态 | 后台无头引擎，受管定义由 dwlle 编译 |
 | 接入 | SeaTunnel Zeta | MySQL/PostgreSQL 到 Iceberg 的批量任务 | 全量/追加；不做实时 CDC |
@@ -102,7 +102,7 @@ AWS 基础设施适配：EKS、EC2、RDS PostgreSQL、S3、ECR、Secrets Manager
 
 | 页面 | Alpha 能力 |
 |---|---|
-| 登录与工作台 | OIDC 登录、项目/环境切换、最近 Scenario 和失败任务；只显示企业实例 |
+| 登录与工作台 | OIDC 登录、工作空间/环境切换、最近 Scenario 和失败任务；只显示企业实例 |
 | 工作空间 Scenario | 自有或已安装场景、跨 Pipeline 依赖、数据契约、SLA 和整体状态 |
 | 工作空间 Pipeline | 自有或已安装实例的新建、复制、搜索、启停、版本和发布状态 |
 | 方案市场 Solution | 官方/社区只读模板、版本、组件/权限/资源需求和安装原型 |
@@ -119,7 +119,7 @@ AWS 基础设施适配：EKS、EC2、RDS PostgreSQL、S3、ECR、Secrets Manager
 | AI 诊断 | 失败摘要、证据、根因候选和修复建议 |
 | 管理 | 用户、角色、审计和基本主题配置 |
 
-导航固定分为“我的工作空间、数据管理、方案市场、开放集成”。工作空间只放企业自有或已安装实例；方案市场只放官方/社区只读模板及安装管理，不用“我的/共享”筛选混合两类对象。
+导航固定分为“日常工作、数据管理、方案市场、开放集成”。日常工作只放企业自有或已安装实例；方案市场只放官方/社区只读模板及安装管理，不用“我的/共享”筛选混合两类对象。Workspace 的创建、权限和环境配置归入工作空间管理。
 
 不使用 iframe，不向客户提供 DS 深链接。DS 原生 UI 只允许内部管理员通过独立账号紧急排障，普通用户无访问权限。
 
@@ -128,7 +128,7 @@ AWS 基础设施适配：EKS、EC2、RDS PostgreSQL、S3、ECR、Secrets Manager
 - 使用成熟图编辑库实现节点、连线、缩放和布局，不从零开发画布。
 - 后端组件注册表提供节点类型、版本、参数 Schema、输入输出约束和引擎要求。
 - 前端根据 Schema 渲染节点配置表单，后端使用同一 Schema 校验。
-- Alpha 支持串行、并行分支和汇合；跨项目依赖、子工作流、补数据、复杂日历和 Worker 分组后续实现。
+- Alpha 支持串行、并行分支和汇合；跨工作空间依赖、子工作流、补数据、复杂日历和 Worker 分组后续实现。
 
 ### 4.3 发布模型
 
@@ -148,28 +148,28 @@ Draft（草稿）
 
 ```text
 Tenant
-  └─ Project：运行、权限与环境边界
+  └─ Workspace：运行、权限与环境边界
       ├─ Environment / InfrastructureBinding / RoleBinding / SecretRef
       └─ Scenario：业务目标与跨 Pipeline 协作
           └─ PipelineVersion：可独立执行的数据工作流
               └─ Component / TaskNode
 
-Solution：Project 级可共享模板，锁定 Scenario、Pipeline 和组件版本
+Solution：Workspace 级可共享模板，锁定 Scenario、Pipeline 和组件版本
 ```
 
-- Project 保存实际环境绑定；Solution 只保存可移植定义与需求，不保存真实密钥或授权。
-- Scenario 只引用同一项目内的 PipelineVersion，包含依赖、数据契约、SLA、负责人和整体状态。
+- Workspace 保存实际环境绑定；Solution 只保存可移植定义与需求，不保存真实密钥或授权。
+- Scenario 只引用同一工作空间内的 PipelineVersion，包含依赖、数据契约、SLA、负责人和整体状态。
 - 数据契约至少可表达数据分区就绪、新鲜度和质量通过，避免只依赖上游任务成功。
 - 安装 Solution 必须经过兼容性检查、权限/成本审查、环境绑定和部署验证。
 - 模板与实例生命周期为“方案市场只读模板 → 安装到指定环境 → 工作空间企业实例 → 本地修改 → 差异比较与升级”。安装记录保存来源模板版本和本地版本，升级不得覆盖本地修改。
-- 固定三层，不支持场景嵌套；跨项目引用和公开共享市场后续开放。
+- 固定三层，不支持场景嵌套；跨工作空间引用和公开共享市场后续开放。
 
 ### 5.2 核心领域对象
 
 | 对象 | 说明 | 事实来源 |
 |---|---|---|
-| Tenant / Project / Environment | 租户、项目和开发/生产环境 | dwlle |
-| Solution / SolutionVersion | 项目级模板、依赖锁定、权限与资源需求 | dwlle |
+| Tenant / Workspace / Environment | 租户、工作空间和开发/生产环境 | dwlle |
+| Solution / SolutionVersion | 工作空间级模板、依赖锁定、权限与资源需求 | dwlle |
 | Scenario / ScenarioVersion | Pipeline 引用、依赖、数据契约和 SLA | dwlle |
 | User / Role / AuditEvent | 用户、Admin/Developer/Viewer 和关键操作审计 | dwlle，身份属性来自 IdP |
 | DataSource / SecretRef | 数据源类型、连接参数和密钥引用，不保存明文密钥 | dwlle |
@@ -184,7 +184,7 @@ Solution：Project 级可共享模板，锁定 Scenario、Pipeline 和组件版�
 
 首版 Pipeline 至少包含：
 
-- 唯一标识、版本、项目、场景、环境和负责人；
+- 唯一标识、版本、工作空间、场景、环境和负责人；
 - 节点 ID、类型、配置、输入输出 Dataset 引用；
 - 节点依赖、调度表达式、超时、重试和失败策略；
 - 引擎要求及组件版本；
@@ -196,9 +196,9 @@ Solution：Project 级可共享模板，锁定 Scenario、Pipeline 和组件版�
 ### 5.4 公共 REST 与应用服务
 
 - dwlle-web 和外部应用共用 `/api/v1` 领域接口，提供 OpenAPI、分页、统一错误码、幂等键和异步 Operation。
-- 核心资源路径包括 `/projects`、`/scenarios`、`/pipelines`、`/runs`、`/datasets`、`/diagnoses`、`/solutions`。
+- 核心资源路径包括 `/workspaces`、`/scenarios`、`/pipelines`、`/runs`、`/datasets`、`/diagnoses`、`/solutions`。
 - UI 聚合与偏好可使用内部 BFF 接口，但核心能力不得绕过公共领域权限。
-- REST Controller 不承载业务逻辑，统一调用 ProjectService、ScenarioService、PipelineService、RunService、DatasetService、DiagnosisService 等应用服务。
+- REST Controller 不承载业务逻辑，统一调用 WorkspaceService、ScenarioService、PipelineService、RunService、DatasetService、DiagnosisService 等应用服务。
 
 ### 5.5 FastMCP 集成
 
@@ -206,7 +206,7 @@ Solution：Project 级可共享模板，锁定 Scenario、Pipeline 和组件版�
 - MCP 工具使用语义化白名单，不从 OpenAPI 自动生成，不直接访问 Repository、DS、Trino 或云资源。
 - 首版工具以只读为主：`pipeline.list/get`、`scenario.get_status`、`run.get_status/get_logs`、`dataset.get_schema/get_lineage`、`run.diagnose`。
 - 场景状态、失败诊断等组合逻辑放在应用服务，避免 Agent 连续调用大量细粒度接口。
-- REST/MCP 均使用统一 `tenant + project + actor + agent + scopes` 上下文；权限取交集，审计保留真实用户和 Agent 身份。
+- REST/MCP 均使用统一 `tenant + workspace + actor + agent + scopes` 上下文；权限取交集，审计保留真实用户和 Agent 身份。
 - Agent 默认只读和草稿；发布、运行、安装、授权、云资源和删除操作必须按风险人工确认。
 
 ### 5.6 运行与日志
@@ -260,7 +260,7 @@ S3 Iceberg curated 表
 - Alpha 至少验证两个租户的产品元数据隔离；每个客户使用独立数据平面，跨账号部署尚未验收。
 - OIDC 只负责身份认证；应用权限采用 Admin、Developer、Viewer 三种角色。
 - 数据库密码和访问密钥存 Secrets Manager，通过接口隔离具体实现，禁止写入 Pipeline、日志和镜像。
-- Trino 查询使用受限服务身份，设置执行超时、扫描/结果限制和项目资源配额。
+- Trino 查询使用受限服务身份，设置执行超时、扫描/结果限制和工作空间资源配额。
 - AI 工具按用户权限执行，默认只读；发送模型前移除密钥，并提供日志/内容脱敏。
 - 管理入口不开公网；AWS 管理通过 SSM，应用入口仅对受邀用户开放。
 - 数据卷、S3 数据桶和 RDS 默认保留，开发环境只有显式配置才允许销毁。
@@ -282,7 +282,7 @@ S3 Iceberg curated 表
 - Alpha 允许单副本应用，不承诺控制平面和 Trino 的高可用。
 - RDS 和 S3 开启备份/版本保护；提供一次元数据库恢复演练，客户业务数据以 Iceberg/S3 持久化。
 - DS、Trino 和 SeaTunnel 的镜像与版本锁定到 `versions.json`，制品预置 S3/ECR，部署不从公网拉取。
-- 使用 requests/limits、查询超时、项目并发上限和结果行数上限控制资源。
+- 使用 requests/limits、查询超时、工作空间并发上限和结果行数上限控制资源。
 - 记录每个 Pipeline 的运行时长、读写数据量和估算成本；月末只展示可获得的指标，不承诺精确账单分摊。
 - 关闭非演示环境夜间资源的策略可作为运维脚本，但不能影响持久数据和元数据恢复。
 
@@ -290,7 +290,7 @@ S3 Iceberg curated 表
 
 在一个真实 AWS 账号中完成：
 
-1. 用户通过 OIDC 登录，并被分配到项目和角色。
+1. 用户通过 OIDC 登录，并被分配到工作空间和角色。
 2. 配置一个 MySQL 或 PostgreSQL 数据源，密钥不出现在日志中。
 3. 在自研 DAG 中创建并发布“SeaTunnel 接入 → Trino 转换 → 质量检查”的 Pipeline。
 4. 手动运行成功后设置定时调度，可以查看版本、状态和日志，无需打开 DS UI。
