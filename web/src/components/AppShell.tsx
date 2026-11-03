@@ -15,8 +15,8 @@ const navigation: { label: string; items: { id: PageId; label: string; icon: Ico
     label: '日常工作',
     items: [
       { id: 'dashboard', label: '工作台', icon: 'dashboard' },
-      { id: 'scenarios', label: '业务场景', icon: 'pipeline' },
-      { id: 'pipelines', label: 'Pipeline', icon: 'pipeline' },
+      { id: 'scenarios', label: '业务场景', icon: 'workflow' },
+      { id: 'workflows', label: '工作流', icon: 'workflow' },
       { id: 'runs', label: '运行中心', icon: 'runs', badge: '3' },
       { id: 'sql', label: 'SQL 工作台', icon: 'sql' },
     ],
@@ -32,8 +32,8 @@ const navigation: { label: string; items: { id: PageId; label: string; icon: Ico
     label: '方案市场',
     items: [
       { id: 'solutions', label: '解决方案', icon: 'layers' },
-      { id: 'scenario-templates', label: '场景模板', icon: 'pipeline' },
-      { id: 'pipeline-templates', label: 'Pipeline 模板', icon: 'pipeline' },
+      { id: 'scenario-templates', label: '场景模板', icon: 'workflow' },
+      { id: 'workflow-templates', label: '工作流模板', icon: 'workflow' },
       { id: 'installed', label: '已安装与更新', icon: 'download' },
     ],
   },
@@ -44,7 +44,7 @@ export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
   const [workspace, setWorkspace] = useState('零售经营分析')
   const [environment, setEnvironment] = useState('生产环境')
   const [personalOpen, setPersonalOpen] = useState(false)
-  const activeNav = activePage === 'editor' ? 'pipelines' : activePage
+  const activeNav = activePage === 'editor' ? 'workflows' : activePage
 
   const navigate = (page: PageId) => {
     onNavigate(page)
@@ -83,7 +83,7 @@ export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
           <div className="help-card">
             <div className="help-icon"><Icon name="sparkles" size={18} /></div>
             <strong>让数据工作更简单</strong>
-            <p>从 Pipeline 到 AI 运维，一站式完成。</p>
+            <p>从 工作流 到 AI 运维，一站式完成。</p>
             <button>查看新手指南 <Icon name="chevron" size={13} /></button>
           </div>
           <div className="personal-area">
@@ -106,7 +106,7 @@ export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
           <div className="topbar-right">
             <label className="global-search">
               <Icon name="search" size={17} />
-              <input aria-label="全局搜索" placeholder="搜索 Pipeline、数据表…" />
+              <input aria-label="全局搜索" placeholder="搜索 工作流、数据表…" />
               <kbd>⌘ K</kbd>
             </label>
             <button className="icon-button notification-button" aria-label="通知"><Icon name="bell" size={19} /><span /></button>

@@ -8,8 +8,8 @@ interface DashboardProps {
 }
 
 const metrics = [
-  { label: '运行中 Pipeline', value: '24', note: '较昨日 +3', icon: 'pipeline' as const, tone: 'blue' },
-  { label: '今日任务成功率', value: '96.8%', note: '近 7 天 +1.2%', icon: 'check' as const, tone: 'green' },
+  { label: '运行中 工作流', value: '24', note: '较昨日 +3', icon: 'workflow' as const, tone: 'blue' },
+  { label: '今日工作流成功率', value: '96.8%', note: '121/125 个已完成实例成功', icon: 'check' as const, tone: 'green' },
   { label: '待处理告警', value: '3', note: '1 条高优先级', icon: 'alert' as const, tone: 'orange' },
   { label: '本月资源成本', value: '¥1,284', note: '预算使用 42%', icon: 'arrowUp' as const, tone: 'purple' },
 ]
@@ -71,13 +71,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
       <div className="dashboard-bottom-grid">
         <Card className="recent-runs-card">
-          <div className="card-header"><div><h2>最近运行</h2><p>Pipeline 实例的最新状态</p></div><Button variant="ghost" size="small" onClick={() => onNavigate('runs')}>查看全部 <Icon name="chevron" size={14} /></Button></div>
+          <div className="card-header"><div><h2>最近运行</h2><p>工作流 实例的最新状态</p></div><Button variant="ghost" size="small" onClick={() => onNavigate('runs')}>查看全部 <Icon name="chevron" size={14} /></Button></div>
           <div className="table-wrap">
             <table className="data-table compact-table">
-              <thead><tr><th>Pipeline</th><th>状态</th><th>开始时间</th><th>耗时</th><th>触发方式</th></tr></thead>
+              <thead><tr><th>工作流</th><th>状态</th><th>开始时间</th><th>耗时</th><th>触发方式</th></tr></thead>
               <tbody>{runs.slice(0, 4).map((run) => (
                 <tr key={run.id} onClick={() => onNavigate('runs')} className="clickable-row">
-                  <td><div className="pipeline-cell"><span className="table-icon"><Icon name="pipeline" size={16} /></span><strong>{run.pipeline}</strong></div></td>
+                  <td><div className="workflow-cell"><span className="table-icon"><Icon name="workflow" size={16} /></span><strong>{run.workflow}</strong></div></td>
                   <td><StatusBadge status={run.status} /></td><td>{run.startedAt.slice(5, 16)}</td><td>{run.duration}</td><td>{run.trigger}</td>
                 </tr>
               ))}</tbody>

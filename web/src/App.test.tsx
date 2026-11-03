@@ -28,19 +28,19 @@ describe('dwlle UI prototype', () => {
     expect(screen.getByText('mysql-shop-production')).toBeInTheDocument()
   })
 
-  it('opens a pipeline and publishes a new version', async () => {
+  it('opens a workflow and publishes a new version', async () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(screen.getByRole('button', { name: /^Pipeline$/ }))
+    await user.click(screen.getByRole('button', { name: /^工作流$/ }))
     await user.click(screen.getByRole('button', { name: /业务库订单增量接入/ }))
     expect(screen.getByRole('heading', { name: '电商订单每日入湖' })).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: '发布 Pipeline' }))
-    expect(screen.getByRole('dialog', { name: '发布 Pipeline v9' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '发布 工作流' }))
+    expect(screen.getByRole('dialog', { name: '发布 工作流 v9' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '确认发布' }))
 
-    expect(screen.getByRole('status')).toHaveTextContent('Pipeline v9 发布成功（原型）')
+    expect(screen.getByRole('status')).toHaveTextContent('工作流 v9 发布成功（原型）')
     expect(screen.getByText('已发布 v9')).toBeInTheDocument()
   })
 
@@ -85,12 +85,12 @@ describe('dwlle UI prototype', () => {
     expect(screen.getByRole('status')).toHaveTextContent('解决方案安装任务已创建（原型）')
   })
 
-  it('navigates from a business scenario to its pipeline', async () => {
+  it('navigates from a business scenario to its workflow', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     await user.click(screen.getByRole('button', { name: /^业务场景$/ }))
-    expect(screen.getByText('跨 Pipeline 依赖')).toBeInTheDocument()
+    expect(screen.getByText('跨 工作流 依赖')).toBeInTheDocument()
     expect(screen.getByText('业务就绪条件')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /订单每日入湖SeaTunnel/ }))
 

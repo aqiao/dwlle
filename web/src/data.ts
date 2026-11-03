@@ -1,6 +1,6 @@
-import type { Pipeline, RunInstance } from './types'
+import type { Workflow, RunInstance } from './types'
 
-export const pipelines: Pipeline[] = [
+export const workflows: Workflow[] = [
   {
     id: 'p-001',
     name: '电商订单每日入湖',
@@ -66,7 +66,7 @@ export const pipelines: Pipeline[] = [
 export const runs: RunInstance[] = [
   {
     id: 'run-20261102-0918',
-    pipeline: '用户行为宽表加工',
+    workflow: '用户行为宽表加工',
     status: 'failed',
     startedAt: '2026-11-02 09:18:32',
     duration: '4m 12s',
@@ -76,7 +76,7 @@ export const runs: RunInstance[] = [
   },
   {
     id: 'run-20261102-0904',
-    pipeline: '电商订单每日入湖',
+    workflow: '电商订单每日入湖',
     status: 'running',
     startedAt: '2026-11-02 09:04:11',
     duration: '18m 46s',
@@ -86,7 +86,7 @@ export const runs: RunInstance[] = [
   },
   {
     id: 'run-20261102-0630',
-    pipeline: '财务对账数据质量检查',
+    workflow: '财务对账数据质量检查',
     status: 'success',
     startedAt: '2026-11-02 06:30:00',
     duration: '8m 04s',
@@ -96,7 +96,7 @@ export const runs: RunInstance[] = [
   },
   {
     id: 'run-20261102-0200',
-    pipeline: '电商订单每日入湖',
+    workflow: '电商订单每日入湖',
     status: 'success',
     startedAt: '2026-11-02 02:00:00',
     duration: '12m 36s',

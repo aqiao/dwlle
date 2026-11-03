@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 export type IconName =
-  | 'dashboard' | 'pipeline' | 'runs' | 'sql' | 'assets' | 'database'
+  | 'dashboard' | 'workflow' | 'runs' | 'sql' | 'assets' | 'database'
   | 'search' | 'bell' | 'chevron' | 'plus' | 'play' | 'more' | 'check'
   | 'alert' | 'clock' | 'close' | 'menu' | 'back' | 'filter' | 'sparkles'
   | 'refresh' | 'code' | 'shield' | 'layers' | 'settings' | 'eye'
@@ -10,7 +10,7 @@ export type IconName =
 
 const paths: Record<IconName, ReactNode> = {
   dashboard: <><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></>,
-  pipeline: <><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6.5 7.5l4.2 8.7M17.5 7.5l-4.2 8.7"/></>,
+  workflow: <><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6.5 7.5l4.2 8.7M17.5 7.5l-4.2 8.7"/></>,
   runs: <><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4Z"/></>,
   sql: <><path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></>,
   assets: <><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></>,
