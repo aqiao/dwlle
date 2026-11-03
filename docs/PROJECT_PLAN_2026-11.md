@@ -8,7 +8,7 @@
 
 在真实 AWS 账号中交付一套可演示、可重复部署、代码可继续迭代的**内部 Alpha**，跑通：
 
-> OIDC 登录 → 配置数据源 → 创建并发布 Pipeline → 批量接入 Iceberg → Trino 转换与查询 → 质量检查 → 定时运行 → 查看资产/血缘/日志 → 失败后 AI 只读诊断
+> OIDC 登录 → 配置数据源 → 创建并发布 Workflow → 批量接入 Iceberg → Trino 转换与查询 → 质量检查 → 定时运行 → 查看资产/血缘/日志 → 失败后 AI 只读诊断
 
 月末版本不是生产级 SaaS，不开放自助注册和付费，不承诺高可用、跨云、跨账号、实时处理或自动修复。
 
@@ -29,7 +29,7 @@
 达到本计划 P0 范围需要：
 
 - 平台工程师 1 名全职：AWS/IaC、Kubernetes、开源组件、可观测性；
-- 产品工程师 1 名全职：FastAPI、React、Pipeline、OIDC、AI 工具层；
+- 产品工程师 1 名全职：FastAPI、React、Workflow、OIDC、AI 工具层；
 - 设计/评审/验收投入约 0.2 人月：决策、代码评审和真实场景验收；
 - 11 月优先交付本项目，暂停原 StarRocks 路线上的新功能开发。
 
@@ -53,32 +53,32 @@
 | 租户与工作空间 | 控制平面租户、工作空间、环境；每客户独立数据平面 | 两个租户的产品元数据隔离测试通过；不提供自助开通 |
 | 认证与权限 | 一个 OIDC Provider；Admin/Developer/Viewer | 登录、登出、令牌校验和关键 API 权限测试通过 |
 | 自研 UI | 全部客户页面、自研 DAG、SQL IDE、资产、运行中心和管理页 | 核心流程无需 DS 原生 UI、iframe 或深链接 |
-| 分层模型 | 领域模型预留 Scenario/Solution；原型展示三层导航和安装流程 | 不影响 Pipeline 主链路，不实现生产场景调度或 Solution 安装 |
+| 分层模型 | 领域模型预留 Scenario/Solution；原型展示三层导航和安装流程 | 不影响 Workflow 主链路，不实现生产场景调度或 Solution 安装 |
 | 公共接口 | `/api/v1`、OpenAPI、Controller 与 Application Service 分层 | 核心资源使用统一权限与审计，Web 不调用特权领域接口 |
-| 审计 | 登录、数据源、Pipeline 发布、运行/重跑、诊断操作 | 可查询操作者、时间、对象和结果，不记录密钥 |
+| 审计 | 登录、数据源、Workflow 发布、运行/重跑、诊断操作 | 可查询操作者、时间、对象和结果，不记录密钥 |
 | 数据源 | MySQL、PostgreSQL 各一种连接配置；Secrets Manager 保存凭据 | 至少一种真实数据库跑通，另一种完成集成测试或明确标为未实测 |
 | 数据接入 | SeaTunnel 批量全量和追加写入 S3 Iceberg | 失败可重试，重复执行不产生非预期重复数据 |
-| Pipeline | SeaTunnel、Trino SQL、质量检查节点；简单依赖；定时、手动、重试、超时 | dwlle 定义版本化并单向编译 DS；发布、运行和版本回滚可用 |
-| SQL | Trino SELECT、CTAS、结果网格、查询历史 | 查询超时和结果行数限制生效；SQL 可保存为 Pipeline 节点 |
+| Workflow | SeaTunnel、Trino SQL、质量检查节点；简单依赖；定时、手动、重试、超时 | dwlle 定义版本化并单向编译 DS；发布、运行和版本回滚可用 |
+| SQL | Trino SELECT、CTAS、结果网格、查询历史 | 查询超时和结果行数限制生效；SQL 可保存为 Workflow 节点 |
 | 数据质量 | 非空、唯一、行数阈值、新鲜度 | 规则结果可见，失败能阻止下游节点 |
 | 数据资产 | 库表列表、Schema、数据负责人、raw/curated 标识 | 资产与 Catalog 对应，权限受工作空间约束 |
-| 血缘 | 基于 Pipeline 和 Trino SQL 的表级血缘 | 标准链路的上游/下游展示正确；不承诺字段级 |
-| 运行中心 | Pipeline/任务状态、开始结束时间、重试、受控日志查看 | DS 状态同步一致，长任务不阻塞 API |
+| 血缘 | 基于 Workflow 和 Trino SQL 的表级血缘 | 标准链路的上游/下游展示正确；不承诺字段级 |
+| 运行中心 | Workflow/任务状态、开始结束时间、重试、受控日志查看 | DS 状态同步一致，长任务不阻塞 API |
 | 监控告警 | CPU/内存、任务失败、运行时长、接入行数/表行数阈值 | 注入故障后产生告警，并能定位到运行实例 |
 | AI 诊断 | 失败摘要、最多三个根因候选、证据引用、修复建议 | 只读、脱敏、可反馈；模型不可用时保留规则错误摘要 |
-| 内置模板 | 一个“JDBC → raw → curated → 质量检查”模板 | 可从模板创建 Pipeline，不依赖市场功能 |
+| 内置模板 | 一个“JDBC → raw → curated → 质量检查”模板 | 可从模板创建 Workflow，不依赖市场功能 |
 | 运维 | 制品锁定、日志采集、RDS 备份、资源限制、卸载/保留策略 | 完成一次恢复验证和重复部署验证 |
 
 ### 3.2 P1：仅在 P0 不延期时完成
 
 - S3 CSV/Parquet 文件接入；
-- Pipeline JSON 导出/导入及兼容性检查；
+- Workflow JSON 导出/导入及兼容性检查；
 - Logo、主题色等静态 UI 配置；
 - Superset 外链或只读嵌入；
 - 第二种模型提供方；
 - 简单的数据量趋势图和运行时长趋势图；
-- Scenario 只读分组、跨 Pipeline 依赖和数据契约展示；
-- 只读 FastMCP 工具（Pipeline/Run/Dataset/已有诊断查询）。
+- Scenario 只读分组、跨 Workflow 依赖和数据契约展示；
+- 只读 FastMCP 工具（Workflow/Run/Dataset/已有诊断查询）。
 
 P1 不进入月末核心验收，不因完成 P1 而接受 P0 缺陷。
 
@@ -102,7 +102,7 @@ P1 不进入月末核心验收，不因完成 P1 而接受 P0 缺陷。
 | M0：架构与选型冻结 | 11-03 | ADR-0009/0010 已接受；Catalog/OIDC/模型选型确定；P0 不再扩张 |
 | M1：技术可行性打通 | 11-08 | 开源组件版本锁定；手动 JDBC → SeaTunnel → Iceberg → Trino 查询成功 |
 | M2：AWS 数据平面可部署 | 11-15 | EKS/RDS/S3/ECR 和核心组件可重复部署；OIDC 登录可用；最小成本数据产生 |
-| M3：产品闭环可用 | 11-22 | 从自研 UI 创建、发布、运行标准 Pipeline；SQL、质量、资产、血缘和日志可用 |
+| M3：产品闭环可用 | 11-22 | 从自研 UI 创建、发布、运行标准 Workflow；SQL、质量、资产、血缘和日志可用 |
 | M4：功能冻结 | 11-25 | P0 代码完成；AI 诊断接入；之后只允许修复缺陷和文档 |
 | M5：Alpha 验收 | 11-30 | 端到端、隔离、安全、恢复、重复部署验收通过，发布内部版本 |
 
@@ -119,7 +119,7 @@ P1 不进入月末核心验收，不因完成 P1 而接受 P0 缺陷。
 | 搭建最小网络、EKS、RDS、S3、ECR | 11-03～11-08 | 平台 | dev 环境部署一次；两分区 synth 通过 |
 | 部署 DS、SeaTunnel、Trino、Catalog | 11-04～11-08 | 平台 | 组件健康检查和基本日志可用 |
 | 手动验证 JDBC → Iceberg → Trino | 11-05～11-08 | 平台 | M1 演示通过；记录兼容问题和资源消耗 |
-| 建立产品数据模型和 API/UI 骨架 | 11-04～11-08 | 产品 | Tenant/Workspace/Pipeline/Run 初版迁移和页面骨架 |
+| 建立产品数据模型和 API/UI 骨架 | 11-04～11-08 | 产品 | Tenant/Workspace/Workflow/Run 初版迁移和页面骨架 |
 
 **第一周停止线：** 如果 11-08 仍不能手动跑通数据链路，不进入大规模 UI 开发。先解决 Catalog/SeaTunnel/Trino 兼容，必要时由设计方复审选型或范围。
 
@@ -138,11 +138,11 @@ P1 不进入月末核心验收，不因完成 P1 而接受 P0 缺陷。
 
 **第二周出口：** M2 通过。若身份或部署未完成，暂停资产美化和 P1，把人力留在核心路径。
 
-### 5.3 第三周：Pipeline、查询、质量与资产（11-16 至 11-22）
+### 5.3 第三周：Workflow、查询、质量与资产（11-16 至 11-22）
 
 | 工作 | 日期 | 责任角色 | 输出/验收 |
 |---|---|---|---|
-| 中立 Pipeline Schema、版本和校验 | 11-16～11-18 | 产品 | 非法依赖、密钥和引擎配置被拒绝 |
+| 中立 Workflow Schema、版本和校验 | 11-16～11-18 | 产品 | 非法依赖、密钥和引擎配置被拒绝 |
 | DS 编译器与发布/回滚 | 11-16～11-19 | 产品 + 平台 | 同一版本生成一致工作流，回滚有审计 |
 | 手动运行、定时、重试和状态同步 | 11-17～11-20 | 产品 + 平台 | DS 与 dwlle 状态一致，失败可定位 |
 | Trino SQL IDE 基础能力 | 11-16～11-20 | 产品 | SELECT/CTAS、结果网格、历史、限制和保存节点 |
@@ -192,7 +192,7 @@ npx cdk synth -c env=dev-cn
 
 - 遍历 synth 模板，确认不存在字面量 `arn:aws:`；
 - Python 通过 ruff、mypy strict 和 pytest；前端通过 lint、类型检查和 vitest；
-- DS client、Pipeline 编译器、OIDC/RBAC、SQL 限制和 SeaTunnel 包装必须有覆盖核心路径的测试；
+- DS client、Workflow 编译器、OIDC/RBAC、SQL 限制和 SeaTunnel 包装必须有覆盖核心路径的测试；
 - Shell 脚本使用 `set -euo pipefail`、幂等，并输出 `[dwlle]` 前缀日志；
 - 所有资源带 `Project=dwlle`、`Env=<envName>`，客户数据资源按配置保留；
 - 新增第三方组件、镜像和模型依赖必须进入版本与制品清单。
@@ -204,7 +204,7 @@ npx cdk synth -c env=dev-cn
 | 1 | 在干净 AWS 环境部署发布候选 | 无公网下载；部署可重复；失败有明确日志 |
 | 2 | 租户 A 用户经 OIDC 登录 | 获得工作空间角色；无权限 API 被拒绝 |
 | 3 | 创建 MySQL/PostgreSQL 数据源 | 凭据只在 Secrets Manager，连接测试成功 |
-| 4 | 从内置模板创建 Pipeline | 包含 SeaTunnel、Trino SQL 和质量检查节点 |
+| 4 | 从内置模板创建 Workflow | 包含 SeaTunnel、Trino SQL 和质量检查节点 |
 | 5 | 发布并手动运行 | raw/curated Iceberg 表生成，重复运行结果符合幂等约定 |
 | 6 | 设置定时并执行一次重试/版本回滚 | DS 执行正确，dwlle 状态和审计一致 |
 | 7 | 查询 curated 表并查看资产/血缘 | SQL 限制生效，Schema 和表级上下游正确 |
@@ -220,7 +220,7 @@ npx cdk synth -c env=dev-cn
 |---|---|---|
 | 开源组件集成超预期 | 11-08 手动链路未通 | 停止 UI 扩张；复审 Catalog/SeaTunnel，不临时自研引擎 |
 | 两名全职资源不成立 | 第一周任务无人并行推进 | 11-03 前选择降级演示目标或调整日期 |
-| Pipeline 双向同步复杂 | 用户需要直接改 DS 定义 | 坚持 dwlle 单向编译，DS 只读排障，不做双写 |
+| Workflow 双向同步复杂 | 用户需要直接改 DS 定义 | 坚持 dwlle 单向编译，DS 只读排障，不做双写 |
 | EKS/常驻组件成本过高 | 11-15 最小成本超出目标客户预期 | 调整资源池和规格；如实发布成本，不宣称必然低价 |
 | AI 诊断幻觉或泄露 | 建议无证据、上下文含敏感值 | 强制证据引用、脱敏和只读工具；不达标则标为实验功能 |
 | 月底只有页面演示 | 真实 AWS 端到端反复失败 | 以第 7 节为唯一完成标准，P1 全部让位 |
@@ -230,7 +230,7 @@ npx cdk synth -c env=dev-cn
 
 - 可部署的后端、前端、数据平面配置和 AWS CDK 代码；
 - 锁定的组件/镜像版本及离线制品；
-- 标准 Pipeline 模板和可复现演示数据；
+- 标准 Workflow 模板和可复现演示数据；
 - 自动化测试、AWS 端到端验收结果和两分区 synth 结果；
 - 部署、升级/回滚、备份恢复和故障处理手册；
 - 最小运行成本基线、已知限制和下一阶段建议；
