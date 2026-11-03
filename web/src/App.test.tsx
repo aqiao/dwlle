@@ -96,4 +96,25 @@ describe('dwlle UI prototype', () => {
     await user.click(screen.getByRole('button', { name: /REST 核心资源/ }))
     expect(screen.getByText('/api/v1/scenarios')).toBeInTheDocument()
   })
+
+  it('keeps shared templates in the solution market', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /^场景模板$/ }))
+    expect(screen.getByRole('heading', { name: '场景模板' })).toBeInTheDocument()
+    expect(screen.getByText('共享模板默认只读')).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: '安装模板' })[0])
+    expect(screen.getByRole('status')).toHaveTextContent('已进入安装流程（原型）')
+  })
+
+  it('links installed templates back to workspace instances', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /^已安装与更新$/ }))
+    expect(screen.getByText('模板更新不会直接覆盖你的实例')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '前往我的工作空间' }))
+    expect(screen.getByRole('heading', { name: '业务场景' })).toBeInTheDocument()
+  })
 })

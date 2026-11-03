@@ -11,10 +11,9 @@ interface AppShellProps {
 
 const navigation: { label: string; items: { id: PageId; label: string; icon: IconName; badge?: string }[] }[] = [
   {
-    label: '工作空间',
+    label: '我的工作空间',
     items: [
       { id: 'dashboard', label: '工作台', icon: 'dashboard' },
-      { id: 'solutions', label: '解决方案', icon: 'layers' },
       { id: 'scenarios', label: '业务场景', icon: 'pipeline' },
       { id: 'pipelines', label: 'Pipeline', icon: 'pipeline' },
       { id: 'runs', label: '运行中心', icon: 'runs', badge: '3' },
@@ -26,6 +25,15 @@ const navigation: { label: string; items: { id: PageId; label: string; icon: Ico
     items: [
       { id: 'assets', label: '数据资产', icon: 'assets' },
       { id: 'sources', label: '数据源', icon: 'database' },
+    ],
+  },
+  {
+    label: '方案市场',
+    items: [
+      { id: 'solutions', label: '解决方案', icon: 'layers' },
+      { id: 'scenario-templates', label: '场景模板', icon: 'pipeline' },
+      { id: 'pipeline-templates', label: 'Pipeline 模板', icon: 'pipeline' },
+      { id: 'installed', label: '已安装与更新', icon: 'download' },
     ],
   },
   {

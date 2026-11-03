@@ -16,7 +16,7 @@ export function Solutions({ onNotify }: { onNotify: (message: string) => void })
 
   return (
     <div className="page solutions-page">
-      <PageHeader eyebrow="项目级复用" title="解决方案" description="复用完整业务方案，包括场景、Pipeline、权限要求和基础设施定义。" actions={<Button icon="download">导出方案</Button>} />
+      <PageHeader eyebrow="方案市场" title="解决方案" description="发现、评估和安装官方或社区方案，企业运行实例统一在我的工作空间管理。" actions={<Button icon="download">我的发布</Button>} />
       <div className="solution-principle"><div><span>01</span><strong>选择方案</strong><small>按业务目标开始</small></div><Icon name="chevron" size={16} /><div><span>02</span><strong>绑定环境</strong><small>自己的资源与密钥</small></div><Icon name="chevron" size={16} /><div><span>03</span><strong>审核并安装</strong><small>权限和成本可控</small></div><Icon name="chevron" size={16} /><div><span>04</span><strong>使用业务场景</strong><small>无需理解底层细节</small></div></div>
       <Card className="featured-solution">
         <div className="featured-solution-main">
