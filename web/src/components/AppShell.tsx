@@ -48,6 +48,7 @@ const navigation: { label: string; items: { id: PageId; label: string; icon: Ico
 export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [workspace, setWorkspace] = useState('零售经营分析')
+  const [environment, setEnvironment] = useState('生产环境')
   const activeNav = activePage === 'editor' ? 'pipelines' : activePage
 
   const navigate = (page: PageId) => {
@@ -102,6 +103,7 @@ export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
           <div className="topbar-left">
             <button className="mobile-menu icon-button" aria-label="打开导航" onClick={() => setMobileOpen(true)}><Icon name="menu" /></button>
             <label className="workspace-select"><span>当前空间</span><select aria-label="切换工作空间" value={workspace} onChange={(event) => setWorkspace(event.target.value)}><option>零售经营分析</option><option>财务数据中心</option><option>全部工作空间</option></select></label>
+            <label className="environment-select"><span>环境</span><select aria-label="切换环境" value={environment} onChange={(event) => setEnvironment(event.target.value)}><option>生产环境</option><option>开发环境</option><option>测试环境</option></select></label>
           </div>
           <div className="topbar-right">
             <label className="global-search">

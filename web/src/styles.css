@@ -1178,3 +1178,12 @@ body { font-size: 14px; }
 /* Workspace selector readability */
 .workspace-select { font-size: 12px; }
 .workspace-select select { height: 34px; font-size: 12px; }
+
+/* Environment selector */
+.environment-select { display: flex; align-items: center; gap: 8px; margin-left: 6px; padding-left: 14px; border-left: 1px solid #e4eaf1; color: #8491a3; font-size: 12px; }
+.environment-select select { height: 34px; min-width: 108px; padding: 0 24px 0 9px; border: 1px solid #e0e6ee; border-radius: 6px; color: #44546a; background: #fff; font-size: 12px; }
+@media (max-width: 760px) {
+  .environment-select { gap: 0; margin-left: 2px; padding-left: 6px; }
+  .environment-select > span { display: none; }
+  .environment-select select { min-width: 96px; }
+}
