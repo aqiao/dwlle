@@ -1137,3 +1137,10 @@ body { font-size: 14px; }
 .ai-insight-head { flex-wrap: wrap; gap: 8px; min-width: 0; }
 .ai-insight-head .tag { flex-shrink: 0; white-space: nowrap; line-height: 1.4; }
 .ai-insight-head > span:first-child { flex-shrink: 0; }
+
+/* AI insight header */
+.ai-insight-head { flex-wrap: nowrap; align-items: flex-start; }
+.ai-insight-head > div { min-width: 0; }
+.ai-insight-head h2 { font-size: 16px; }
+.ai-insight-head p { color: var(--muted); font-size: 11px; margin-top: 5px; }
+.ai-opportunity-title { font-size: 13px; margin-top: 16px; }
