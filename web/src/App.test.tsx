@@ -14,7 +14,7 @@ describe('dwlle UI prototype', () => {
     expect(screen.getByRole('heading', { name: '工作台' })).toBeInTheDocument()
     expect(screen.getByText('汇总当前工作空间的任务、资源与运行状态。')).toBeInTheDocument()
     expect(screen.getByText('智能洞察')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '运行场景' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '运行场景' })).not.toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: '切换工作空间' })).toBeInTheDocument()
     expect(screen.queryByText('数据平台')).not.toBeInTheDocument()
     expect(screen.queryByText('生产环境')).not.toBeInTheDocument()
@@ -22,8 +22,6 @@ describe('dwlle UI prototype', () => {
     expect(screen.queryByText('dwlle')).not.toBeInTheDocument()
     expect(screen.queryByText('快速开始')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '用户菜单' })).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: '运行场景' }))
-    expect(screen.getByRole('status')).toHaveTextContent('当前空间的场景已加入运行队列（原型）')
     await user.click(screen.getByRole('button', { name: /^数据源$/ }))
 
     expect(screen.getByRole('heading', { name: /^数据源$/ })).toBeInTheDocument()

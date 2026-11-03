@@ -1174,3 +1174,7 @@ body { font-size: 14px; }
   .workspace-select select { min-width: 125px; }
   .dashboard-stat { padding: 6px 8px; }
 }
+
+/* Workspace selector readability */
+.workspace-select { font-size: 12px; }
+.workspace-select select { height: 34px; font-size: 12px; }
