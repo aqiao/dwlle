@@ -5,6 +5,7 @@ import { Button, Card, PageHeader, ProgressBar, StatusBadge } from '../component
 
 interface DashboardProps {
   onNavigate: (page: PageId) => void
+  onNotify: (message: string) => void
 }
 
 const metrics = [
@@ -14,14 +15,14 @@ const metrics = [
   { label: '本月资源成本', value: '¥1,284', note: '预算使用 42%', icon: 'arrowUp' as const, tone: 'purple' },
 ]
 
-export function Dashboard({ onNavigate }: DashboardProps) {
+export function Dashboard({ onNavigate, onNotify }: DashboardProps) {
   return (
     <div className="page dashboard-page">
       <PageHeader
         eyebrow="日常工作"
         title="工作台"
         description="汇总当前工作空间的任务、资源与运行状态。"
-        actions={<><Button icon="download">导出报告</Button><Button variant="primary" icon="plus" onClick={() => onNavigate('editor')}>新建场景</Button></>}
+        actions={<><Button icon="download">导出报告</Button><Button variant="primary" icon="play" onClick={() => onNotify('当前空间的场景已加入运行队列（原型）')}>运行场景</Button></>}
       />
 
       <div className="metric-grid">

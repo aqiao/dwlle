@@ -69,7 +69,7 @@ export default function App() {
       content = <Integrations onNotify={notify} />
       break
     default:
-      content = <Dashboard onNavigate={setPage} />
+      content = <Dashboard onNavigate={setPage} onNotify={notify} />
   }
 
   return (
