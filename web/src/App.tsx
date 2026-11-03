@@ -4,6 +4,8 @@ import { Icon } from './components/Icon'
 import type { PageId } from './types'
 import { Dashboard } from './pages/Dashboard'
 import { Solutions } from './pages/Solutions'
+import { TemplateMarket } from './pages/TemplateMarket'
+import { Installed } from './pages/Installed'
 import { Scenarios } from './pages/Scenarios'
 import { Pipelines } from './pages/Pipelines'
 import { PipelineEditor } from './pages/PipelineEditor'
@@ -32,6 +34,15 @@ export default function App() {
   switch (page) {
     case 'solutions':
       content = <Solutions onNotify={notify} />
+      break
+    case 'scenario-templates':
+      content = <TemplateMarket kind="scenario" onNotify={notify} />
+      break
+    case 'pipeline-templates':
+      content = <TemplateMarket kind="pipeline" onNotify={notify} />
+      break
+    case 'installed':
+      content = <Installed onOpenWorkspace={() => setPage('scenarios')} onNotify={notify} />
       break
     case 'scenarios':
       content = <Scenarios onOpenPipeline={openPipeline} onNotify={notify} />

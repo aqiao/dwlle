@@ -1,6 +1,9 @@
 export type PageId =
   | 'dashboard'
   | 'solutions'
+  | 'scenario-templates'
+  | 'pipeline-templates'
+  | 'installed'
   | 'scenarios'
   | 'pipelines'
   | 'editor'

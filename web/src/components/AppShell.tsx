@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import type { PageId } from '../types'
+import { branding } from '../config/branding'
 import { Avatar, Tag } from './UI'
 import { Icon, type IconName } from './Icon'
 
@@ -11,10 +12,9 @@ interface AppShellProps {
 
 const navigation: { label: string; items: { id: PageId; label: string; icon: IconName; badge?: string }[] }[] = [
   {
-    label: '工作空间',
+    label: '我的工作空间',
     items: [
       { id: 'dashboard', label: '工作台', icon: 'dashboard' },
-      { id: 'solutions', label: '解决方案', icon: 'layers' },
       { id: 'scenarios', label: '业务场景', icon: 'pipeline' },
       { id: 'pipelines', label: 'Pipeline', icon: 'pipeline' },
       { id: 'runs', label: '运行中心', icon: 'runs', badge: '3' },
@@ -26,6 +26,15 @@ const navigation: { label: string; items: { id: PageId; label: string; icon: Ico
     items: [
       { id: 'assets', label: '数据资产', icon: 'assets' },
       { id: 'sources', label: '数据源', icon: 'database' },
+    ],
+  },
+  {
+    label: '方案市场',
+    items: [
+      { id: 'solutions', label: '解决方案', icon: 'layers' },
+      { id: 'scenario-templates', label: '场景模板', icon: 'pipeline' },
+      { id: 'pipeline-templates', label: 'Pipeline 模板', icon: 'pipeline' },
+      { id: 'installed', label: '已安装与更新', icon: 'download' },
     ],
   },
   {
@@ -50,14 +59,9 @@ export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
       {mobileOpen && <button className="sidebar-backdrop" aria-label="关闭导航" onClick={() => setMobileOpen(false)} />}
       <aside className={`sidebar ${mobileOpen ? 'sidebar-open' : ''}`}>
         <div className="brand">
-          <div className="brand-mark"><span /><span /><span /></div>
-          <div className="brand-name">dwlle<span>对味</span></div>
+          <div className="enterprise-logo">{branding.logoText}</div>
+          <div className="enterprise-name">{branding.companyName}</div>
           <button className="mobile-close icon-button" aria-label="关闭导航" onClick={() => setMobileOpen(false)}><Icon name="close" /></button>
-        </div>
-        <div className="workspace-switcher">
-          <div className="workspace-icon">D</div>
-          <div><strong>数据平台</strong><span>企业工作空间</span></div>
-          <Icon name="arrowDown" size={15} />
         </div>
         <nav className="main-nav" aria-label="主导航">
           {navigation.map((group) => (
