@@ -1,7 +1,7 @@
 import { runs } from '../data'
 import type { PageId } from '../types'
 import { Icon } from '../components/Icon'
-import { Button, Card, ProgressBar, StatusBadge } from '../components/UI'
+import { Button, Card, PageHeader, ProgressBar, StatusBadge } from '../components/UI'
 
 interface DashboardProps {
   onNavigate: (page: PageId) => void
@@ -17,14 +17,12 @@ const metrics = [
 export function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="page dashboard-page">
-      <div className="dashboard-header-actions">
-        <div className="dashboard-summary">
-          <span className="dashboard-stat"><i className="summary-icon blue"><Icon name="layers" size={16} /></i><span>工作空间<strong>32</strong></span></span>
-          <span className="dashboard-stat"><i className="summary-icon green"><Icon name="runs" size={16} /></i><span>运行中<strong>24</strong></span></span>
-          <span className="dashboard-stat"><i className="summary-icon red"><Icon name="alert" size={16} /></i><span>待处理告警<strong>3</strong></span></span>
-        </div>
-        <div className="page-actions"><Button icon="download">导出报告</Button><Button variant="primary" icon="plus" onClick={() => onNavigate('editor')}>新建场景</Button></div>
-      </div>
+      <PageHeader
+        eyebrow="日常工作"
+        title="工作台"
+        description="汇总当前工作空间的任务、资源与运行状态。"
+        actions={<><Button icon="download">导出报告</Button><Button variant="primary" icon="plus" onClick={() => onNavigate('editor')}>新建场景</Button></>}
+      />
 
       <div className="metric-grid">
         {metrics.map((metric) => (

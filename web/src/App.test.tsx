@@ -11,6 +11,8 @@ describe('dwlle UI prototype', () => {
     expect(screen.queryByText('早上好，陈默')).not.toBeInTheDocument()
     expect(screen.queryByText('AI 建议仅供辅助决策，不会自动执行')).not.toBeInTheDocument()
     expect(screen.getByText('云栖集团')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '工作台' })).toBeInTheDocument()
+    expect(screen.getByText('汇总当前工作空间的任务、资源与运行状态。')).toBeInTheDocument()
     expect(screen.getByText('智能洞察')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '新建场景' })).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: '切换工作空间' })).toBeInTheDocument()
