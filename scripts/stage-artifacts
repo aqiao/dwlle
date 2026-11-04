@@ -7,8 +7,8 @@ ARTIFACT_DIR="$ROOT_DIR/artifacts"
 
 mkdir -p "$ARTIFACT_DIR"
 
-while IFS='|' read -r name version url expected_sha; do
-  destination="$ARTIFACT_DIR/${name}-${version}"
+while IFS='|' read -r name version url expected_sha filename; do
+  destination="$ARTIFACT_DIR/${filename:-${name}-${version}}"
   if [[ ! -f "$destination" ]]; then
     echo "[dwlle] Downloading $name $version"
     curl -fL --retry 3 -o "$destination" "$url"
@@ -21,4 +21,4 @@ while IFS='|' read -r name version url expected_sha; do
     exit 1
   fi
   echo "[dwlle] Verified $name $version"
-done < <(python3 -c 'import json; data=json.load(open("versions.json")); [print("|".join([item["name"], item["version"], item["url"], item["sha256"]])) for item in data["artifacts"]]')
+done < <(MANIFEST="$MANIFEST" python3 -c 'import json, os; data=json.load(open(os.environ["MANIFEST"])); [print("|".join([item["name"], item["version"], item["url"], item["sha256"], item.get("filename", "")])) for item in data["artifacts"]]')

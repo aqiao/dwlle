@@ -1,0 +1,159 @@
+services:
+  rustfs:
+    image: rustfs/rustfs:1.0.0-beta.8
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY}
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+    volumes:
+      - rustfs-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://127.0.0.1:9000/health && curl --fail http://127.0.0.1:9001/rustfs/console/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  setup_bucket:
+    image: amazon/aws-cli:2.39.3
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY}
+      AWS_ENDPOINT_URL: http://rustfs:9000
+    entrypoint: "/bin/sh"
+    command:
+      - "-c"
+      - >-
+        echo "[dwlle] Creating warehouse bucket if needed" &&
+        (aws s3api head-bucket --bucket bucket123 || aws s3 mb s3://bucket123) &&
+        aws s3 ls
+
+  polaris:
+    image: apache/polaris:latest@sha256:347615e736cab2c9be0d8c464552ac930be4755302bb0aeb745216bbae99ba5b
+    ports:
+      - "8181:8181"
+      - "5005:5005"
+    depends_on:
+      setup_bucket:
+        condition: service_completed_successfully
+    environment:
+      JAVA_DEBUG: "false"
+      AWS_REGION: us-west-2
+      AWS_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY}
+      POLARIS_BOOTSTRAP_CREDENTIALS: POLARIS,root,${POLARIS_CLIENT_SECRET}
+      polaris.realm-context.realms: POLARIS
+      quarkus.otel.sdk.disabled: "true"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8182/q/health"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+
+  polaris-setup:
+    image: alpine/curl:8.23.0
+    depends_on:
+      polaris:
+        condition: service_healthy
+    environment:
+      CLIENT_ID: root
+      CLIENT_SECRET: ${POLARIS_CLIENT_SECRET}
+    volumes:
+      - ./polaris:/polaris:ro
+    entrypoint: "/bin/sh"
+    command:
+      - "-c"
+      - >-
+        source /polaris/obtain-token.sh &&
+        export STORAGE_CONFIG_INFO='{"storageType":"S3",
+          "endpoint":"http://rustfs:9000",
+          "endpointInternal":"http://rustfs:9000",
+          "pathStyleAccess":true,
+          "region":"us-west-2"}' &&
+        export STORAGE_LOCATION='s3://bucket123' &&
+        /polaris/create-catalog.sh POLARIS $$TOKEN &&
+        curl --fail-with-body \
+          -H "Authorization: Bearer $$TOKEN" \
+          -H 'Content-Type: application/json' \
+          -X PUT \
+          http://polaris:8181/api/management/v1/catalogs/quickstart_catalog/catalog-roles/catalog_admin/grants \
+          -d '{"type":"catalog", "privilege":"CATALOG_MANAGE_CONTENT"}' &&
+        echo "[dwlle] Polaris catalog is ready"
+
+  trino:
+    image: trinodb/trino:467
+    ports:
+      - "8080:8080"
+    depends_on:
+      polaris-setup:
+        condition: service_completed_successfully
+    environment:
+      CLIENT_ID: root
+      CLIENT_SECRET: ${POLARIS_CLIENT_SECRET}
+    volumes:
+      - ./trino/catalog:/etc/trino/catalog:ro
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/v1/info"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+
+  seatunnel:
+    image: dwlle/seatunnel:2.3.12
+    build:
+      context: ../../
+      dockerfile: deploy/local/seatunnel/Dockerfile
+    profiles: ["verification"]
+    environment:
+      LOCAL_POSTGRES_JDBC_URL: ${LOCAL_POSTGRES_JDBC_URL}
+      LOCAL_POSTGRES_USER: ${LOCAL_POSTGRES_USER}
+      LOCAL_POSTGRES_PASSWORD: ${LOCAL_POSTGRES_PASSWORD}
+      POLARIS_CLIENT_SECRET: ${POLARIS_CLIENT_SECRET}
+      POLARIS_CREDENTIAL: root:${POLARIS_CLIENT_SECRET}
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY}
+    volumes:
+      - ./seatunnel:/seatunnel:ro
+
+  dolphinscheduler-schema-init:
+    image: apache/dolphinscheduler-standalone-server:3.3.2
+    profiles: ["verification"]
+    environment: &dolphinscheduler-environment
+      DATABASE: postgresql
+      SPRING_DATASOURCE_URL: ${DOLPHINSCHEDULER_JDBC_URL}
+      SPRING_DATASOURCE_USERNAME: ${LOCAL_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${LOCAL_POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+    entrypoint: "/bin/bash"
+    command: ["/opt/dolphinscheduler/tools/bin/upgrade-schema.sh"]
+
+  dolphinscheduler:
+    image: apache/dolphinscheduler-standalone-server:3.3.2
+    profiles: ["verification"]
+    depends_on:
+      dolphinscheduler-schema-init:
+        condition: service_completed_successfully
+    environment: *dolphinscheduler-environment
+    ports:
+      - "12345:12345"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:12345/dolphinscheduler/ui/"]
+      interval: 20s
+      timeout: 15s
+      retries: 30
+      start_period: 45s
+
+volumes:
+  rustfs-data:
