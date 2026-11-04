@@ -75,15 +75,15 @@ AWS 基础设施适配：EKS、EC2、RDS PostgreSQL、S3、ECR、Secrets Manager
 | 前端 | React + TypeScript + Monaco | 全部客户界面、DAG、SQL、资产、运行和诊断 | 简单 DAG，不复刻 DS 全部能力 |
 | API | Python 3.12 + FastAPI | 产品 API、权限、审计、适配器、AI 工具 | 单区域部署 |
 | 产品数据库 | PostgreSQL | 租户、工作空间、定义、版本、资产、运行索引 | 不存客户业务数据 |
-| 身份 | Keycloak 或等价 OIDC Broker | 对接一个 OIDC Provider、登录和令牌 | 应用 RBAC 仍由 dwlle 管理 |
-| 调度 | DolphinScheduler 3.x | 定时、依赖、手动运行、重试、执行状态 | 后台无头引擎，受管定义由 dwlle 编译 |
-| 接入 | SeaTunnel Zeta | MySQL/PostgreSQL 到 Iceberg 的批量任务 | 全量/追加；不做实时 CDC |
-| 查询 | Trino | SELECT、CTAS、SQL 质量检查 | 限制查询时间、结果行数和资源 |
+| 身份 | Keycloak 26.8.1 | 对接一个 OIDC Provider、登录和 JWT 校验 | 应用 RBAC 仍由 dwlle 管理 |
+| 调度 | DolphinScheduler 3.4.3 | 定时、依赖、手动运行、重试、执行状态 | 后台无头引擎，受管定义由 dwlle 编译 |
+| 接入 | SeaTunnel Zeta 3.0.0 | MySQL/PostgreSQL 到 Iceberg 的批量任务 | 全量/追加；不做实时 CDC |
+| 查询 | Trino 484 | SELECT、CTAS、SQL 质量检查 | 限制查询时间、结果行数和资源 |
 | 表格式 | Apache Iceberg | 开放表、Schema 演进和快照 | 不首版暴露复杂表维护操作 |
-| 技术目录 | Iceberg REST Catalog | 表标识和元数据位置 | 实现选型第一周验证 |
+| 技术目录 | Apache Polaris 1.8.0 | 表标识和元数据位置 | 本地链路已验证，生产持久化后续实现 |
 | 对象存储 | S3 | 数据文件、任务产物和制品 | 数据不出约定区域 |
 | 可观测性 | OTel、Prometheus、Loki、Grafana | 指标、日志、告警和排障上下文 | 不建设完整 APM/追踪平台 |
-| AI | ModelProvider + dwlle 工具层 | 失败摘要、根因候选、修复建议 | 只读；无自动修复 |
+| AI | Amazon Bedrock + ModelProvider + dwlle 工具层 | 失败摘要、根因候选、修复建议 | Global 初始模型 Sonnet 5.5，只读；无自动修复 |
 | IaC | AWS CDK TypeScript | AWS 网络、计算、数据库、存储和安全 | 两分区 synth，单分区实测 |
 
 ### 3.1 首版不引入的组件

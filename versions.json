@@ -38,6 +38,13 @@
       "filename": "postgresql-jdbc-42.4.3.jar",
       "url": "https://repo1.maven.org/maven2/org/postgresql/postgresql/42.4.3/postgresql-42.4.3.jar",
       "sha256": "70b65eaec096450921c600c426fe407325332fab441769a51900569f5c83dbc5"
+    },
+    {
+      "name": "keycloak",
+      "version": "26.8.1",
+      "filename": "keycloak-26.8.1.tar.gz",
+      "url": "https://repo1.maven.org/maven2/org/keycloak/keycloak-quarkus-dist/26.8.1/keycloak-quarkus-dist-26.8.1.tar.gz",
+      "sha256": "4e2740b181faa2ea623a1c2ecf00855935311e546046e2f857615a47ed24cbe8"
     }
   ]
 }
