@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1.runs import router as runs_router
 from app.api.v1.scenarios import router as scenarios_router
 from app.api.v1.workflows import router as workflows_router
 from app.api.v1.workspaces import router as workspaces_router
@@ -33,6 +34,7 @@ def create_app(run_migrations: bool = True) -> FastAPI:
     app.include_router(workspaces_router, prefix=settings.api_v1_prefix)
     app.include_router(scenarios_router, prefix=settings.api_v1_prefix)
     app.include_router(workflows_router, prefix=settings.api_v1_prefix)
+    app.include_router(runs_router, prefix=settings.api_v1_prefix)
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:

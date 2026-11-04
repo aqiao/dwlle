@@ -1,6 +1,6 @@
 # dwlle Control Plane API
 
-FastAPI 控制平面基础工程，默认使用 PostgreSQL 持久化。当前提供 Workspace、Scenario、Workflow 和不可变 WorkflowVersion API，支持基础 DAG 校验。真实 OIDC、执行引擎和 MCP 尚未接入。
+FastAPI 控制平面基础工程，默认使用 PostgreSQL 持久化。当前提供 Workspace、Scenario、Workflow、不可变 WorkflowVersion 和 Run API，支持基础 DAG 校验。Run 仅记录关联已发布版本的 queued 实例，真实 OIDC、执行引擎和 MCP 尚未接入。
 
 ## 启动
 
@@ -48,3 +48,6 @@ uv run pytest
 - `GET /api/v1/workflows/{id}`
 - `POST /api/v1/workflows/{id}/publish`
 - `GET /api/v1/workflows/{id}/versions`
+- `POST /api/v1/workflows/{id}/runs`
+- `GET /api/v1/runs?workspace_id=1&workflow_id=1`
+- `GET /api/v1/runs/{id}`
