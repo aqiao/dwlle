@@ -6,6 +6,10 @@
   "availabilityZones": ["us-east-1a", "us-east-1b"],
   "eksVersion": "1.36",
   "nodeInstanceType": "t4g.medium",
+  "nodeAmiType": "AL2023_ARM_64_STANDARD",
   "rdsInstanceClass": "t4g.micro",
+  "rdsEngineVersion": "16.15",
+  "bastionAmiId": "ami-0951c836c26e34fc8",
+  "bastionInstanceType": "t4g.micro",
   "removalPolicy": "retain"
 }

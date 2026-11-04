@@ -12,5 +12,5 @@ if (!envName) {
 }
 
 const config = loadConfig(envName);
-new DwlleBaseStack(app, `Dwlle-${config.envName}-Base`, config);
+new DwlleBaseStack(app, `Dwlle-${config.envName}-DataPlane`, config);
 app.synth();

@@ -9,6 +9,10 @@ export interface EnvConfig {
   readonly availabilityZones: string[];
   readonly eksVersion: string;
   readonly nodeInstanceType: string;
+  readonly nodeAmiType: "AL2023_ARM_64_STANDARD";
   readonly rdsInstanceClass: string;
+  readonly rdsEngineVersion: string;
+  readonly bastionAmiId: string;
+  readonly bastionInstanceType: string;
   readonly removalPolicy: RemovalPolicyName;
 }

@@ -8,11 +8,8 @@ describe("DwlleBaseStack", () => {
   for (const envName of ["dev-global", "dev-cn"]) {
     test(`${envName} applies security and partition constraints`, () => {
       const app = new cdk.App();
-      const stack = new DwlleBaseStack(
-        app,
-        `Dwlle-${envName}-Base`,
-        loadConfig(envName),
-      );
+      const config = loadConfig(envName);
+      const stack = new DwlleBaseStack(app, `Dwlle-${envName}-Base`, config);
       const template = Template.fromStack(stack);
       const json = JSON.stringify(template.toJSON());
 
@@ -30,6 +27,16 @@ describe("DwlleBaseStack", () => {
         PubliclyAccessible: false,
         StorageEncrypted: true,
         DeletionProtection: true,
+        EngineVersion: config.rdsEngineVersion,
+        DBName: "dolphinscheduler",
+      });
+      template.hasResourceProperties("AWS::EC2::Instance", {
+        ImageId: config.bastionAmiId,
+        InstanceType: config.bastionInstanceType,
+        NetworkInterfaces: [{ AssociatePublicIpAddress: false }],
+      });
+      template.hasResourceProperties("AWS::EKS::Nodegroup", {
+        AmiType: config.nodeAmiType,
       });
 
       const ingressResources = template.findResources(

@@ -3,6 +3,7 @@ import * as cdk from "aws-cdk-lib";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecr from "aws-cdk-lib/aws-ecr";
 import * as eks from "aws-cdk-lib/aws-eks";
+import * as iam from "aws-cdk-lib/aws-iam";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import type { Construct } from "constructs";
@@ -63,12 +64,57 @@ export class DwlleBaseStack extends cdk.Stack {
     });
 
     cluster.addNodegroupCapacity("Workers", {
+      amiType: eks.NodegroupAmiType[config.nodeAmiType],
       instanceTypes: [new ec2.InstanceType(config.nodeInstanceType)],
       minSize: 1,
       desiredSize: 2,
       maxSize: 3,
       subnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
     });
+    const dataPlaneRole = new iam.Role(this, "DataPlaneRole", {
+      assumedBy: new iam.ServicePrincipal(`pods.eks.${cdk.Aws.URL_SUFFIX}`),
+    });
+    dataPlaneRole.assumeRolePolicy?.addStatements(
+      new iam.PolicyStatement({
+        actions: ["sts:TagSession"],
+        principals: [
+          new iam.ServicePrincipal(`pods.eks.${cdk.Aws.URL_SUFFIX}`),
+        ],
+      }),
+    );
+    artifactsBucket.grantRead(dataPlaneRole);
+    const storageRole = new iam.Role(this, "IcebergStorageRole", {
+      assumedBy: new iam.ArnPrincipal(dataPlaneRole.roleArn),
+    });
+    storageRole.assumeRolePolicy?.addStatements(
+      new iam.PolicyStatement({
+        actions: ["sts:TagSession"],
+        principals: [new iam.ArnPrincipal(dataPlaneRole.roleArn)],
+      }),
+    );
+    dataBucket.grantReadWrite(storageRole);
+    dataPlaneRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["sts:AssumeRole", "sts:TagSession"],
+        resources: [storageRole.roleArn],
+      }),
+    );
+    const podIdentityAddon = new eks.CfnAddon(this, "PodIdentityAddon", {
+      addonName: "eks-pod-identity-agent",
+      clusterName: cluster.clusterName,
+      resolveConflicts: "OVERWRITE",
+    });
+    const podIdentityAssociation = new eks.CfnPodIdentityAssociation(
+      this,
+      "DataPlanePodIdentityAssociation",
+      {
+        clusterName: cluster.clusterName,
+        namespace: "dwlle",
+        serviceAccount: "data-plane",
+        roleArn: dataPlaneRole.roleArn,
+      },
+    );
+    podIdentityAssociation.node.addDependency(podIdentityAddon);
 
     const databaseSecurityGroup = new ec2.SecurityGroup(
       this,
@@ -81,11 +127,12 @@ export class DwlleBaseStack extends cdk.Stack {
       "Allow PostgreSQL access from the data plane",
     );
 
-    new rds.DatabaseInstance(this, "Database", {
+    const database = new rds.DatabaseInstance(this, "Database", {
       engine: rds.DatabaseInstanceEngine.postgres({
-        version: rds.PostgresEngineVersion.VER_16_4,
+        version: rds.PostgresEngineVersion.of(config.rdsEngineVersion, "16"),
       }),
       instanceType: new ec2.InstanceType(config.rdsInstanceClass),
+      databaseName: "dolphinscheduler",
       vpc,
       vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
       securityGroups: [databaseSecurityGroup],
@@ -99,6 +146,57 @@ export class DwlleBaseStack extends cdk.Stack {
       credentials: rds.Credentials.fromGeneratedSecret("dwlleAdmin"),
     });
 
+    const bastionRole = new iam.Role(this, "BastionRole", {
+      assumedBy: new iam.ServicePrincipal(`ec2.${cdk.Aws.URL_SUFFIX}`),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          "AmazonSSMManagedInstanceCore",
+        ),
+      ],
+    });
+    artifactsBucket.grantRead(bastionRole);
+    if (database.secret) {
+      database.secret.grantRead(bastionRole);
+    }
+    bastionRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["eks:DescribeCluster"],
+        resources: [cluster.clusterArn],
+      }),
+    );
+    cluster.awsAuth.addRoleMapping(bastionRole, {
+      groups: ["system:masters"],
+    });
+
+    const bastionSecurityGroup = new ec2.SecurityGroup(
+      this,
+      "BastionSecurityGroup",
+      { vpc },
+    );
+    cluster.clusterSecurityGroup.addIngressRule(
+      bastionSecurityGroup,
+      ec2.Port.tcp(443),
+      "Allow private Kubernetes API access from the SSM bastion",
+    );
+    databaseSecurityGroup.addIngressRule(
+      bastionSecurityGroup,
+      ec2.Port.tcp(5432),
+      "Allow PostgreSQL validation from the SSM bastion",
+    );
+
+    const bastion = new ec2.Instance(this, "Bastion", {
+      vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+      instanceType: new ec2.InstanceType(config.bastionInstanceType),
+      machineImage: ec2.MachineImage.genericLinux({
+        [config.region]: config.bastionAmiId,
+      }),
+      role: bastionRole,
+      securityGroup: bastionSecurityGroup,
+      associatePublicIpAddress: false,
+      requireImdsv2: true,
+    });
+
     new cdk.CfnOutput(this, "ArtifactsBucketName", {
       value: artifactsBucket.bucketName,
     });
@@ -107,7 +205,13 @@ export class DwlleBaseStack extends cdk.Stack {
       value: repository.repositoryName,
     });
     new cdk.CfnOutput(this, "ClusterName", { value: cluster.clusterName });
-
+    new cdk.CfnOutput(this, "BastionInstanceId", {
+      value: bastion.instanceId,
+    });
+    new cdk.CfnOutput(this, "DatabaseSecretArn", {
+      value: database.secret?.secretArn ?? "",
+    });
+    new cdk.CfnOutput(this, "StorageRoleArn", { value: storageRole.roleArn });
     cdk.Tags.of(this).add("Project", "dwlle");
     cdk.Tags.of(this).add("Env", config.envName);
   }
