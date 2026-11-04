@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     app_name: str = "dwlle Control Plane"
     app_version: str = "0.1.0"
     app_env: str = "development"
-    database_url: str = "sqlite:///./dwlle.db"
+    database_url: str = "postgresql+psycopg://aqiao@127.0.0.1:5432/dwlle"
     api_v1_prefix: str = "/api/v1"
     cors_origins: str = "http://127.0.0.1:5173,http://localhost:5173"
 

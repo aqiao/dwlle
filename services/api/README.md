@@ -1,6 +1,6 @@
 # dwlle Control Plane API
 
-FastAPI 控制平面基础工程，当前提供 Workspace 创建、列表和详情查询，使用 SQLite 持久化。真实 OIDC、Scenario/Workflow、执行引擎和 MCP 尚未接入。
+FastAPI 控制平面基础工程，当前提供 Workspace 创建、列表和详情查询，默认使用 PostgreSQL 持久化。真实 OIDC、Scenario/Workflow、执行引擎和 MCP 尚未接入。
 
 ## 启动
 
@@ -36,4 +36,4 @@ uv run mypy app
 uv run pytest
 ```
 
-数据库文件默认是 `services/api/dwlle.db`，已被 `.gitignore` 忽略。可用 `DWLLE_DATABASE_URL` 修改数据库连接。
+默认连接是 `postgresql+psycopg://aqiao@127.0.0.1:5432/dwlle`。可用 `DWLLE_DATABASE_URL` 修改连接；生产环境通过 Secrets Manager 注入。
