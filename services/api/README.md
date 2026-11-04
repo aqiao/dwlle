@@ -1,6 +1,6 @@
 # dwlle Control Plane API
 
-FastAPI 控制平面基础工程，当前提供 Workspace 创建、列表和详情查询，默认使用 PostgreSQL 持久化。真实 OIDC、Scenario/Workflow、执行引擎和 MCP 尚未接入。
+FastAPI 控制平面基础工程，默认使用 PostgreSQL 持久化。当前提供 Workspace、Scenario、Workflow 和不可变 WorkflowVersion API，支持基础 DAG 校验。真实 OIDC、执行引擎和 MCP 尚未接入。
 
 ## 启动
 
@@ -37,3 +37,14 @@ uv run pytest
 ```
 
 默认连接是 `postgresql+psycopg://aqiao@127.0.0.1:5432/dwlle`。可用 `DWLLE_DATABASE_URL` 修改连接；生产环境通过 Secrets Manager 注入。
+
+## API 资源
+
+- `POST/GET /api/v1/workspaces`
+- `GET /api/v1/workspaces/{id}`
+- `POST/GET /api/v1/scenarios?workspace_id=1`
+- `GET /api/v1/scenarios/{id}`
+- `POST/GET /api/v1/workflows?workspace_id=1`
+- `GET /api/v1/workflows/{id}`
+- `POST /api/v1/workflows/{id}/publish`
+- `GET /api/v1/workflows/{id}/versions`
