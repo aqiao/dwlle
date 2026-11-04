@@ -1,0 +1,32 @@
+{
+  "name": "dwlle-infra",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint . && prettier --check .",
+    "test": "jest --runInBand",
+    "synth": "cdk synth"
+  },
+  "devDependencies": {
+    "@aws-cdk/lambda-layer-kubectl-v36": "^2.0.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.0",
+    "aws-cdk": "^2.1027.0",
+    "aws-cdk-lib": "^2.220.0",
+    "constructs": "^10.4.2",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "jest": "^30.0.0",
+    "prettier": "^3.5.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.9.0",
+    "typescript-eslint": "^8.0.0"
+  },
+  "overrides": {
+    "deepmerge": "^4.3.1",
+    "glob": "^14.0.2",
+    "minimatch": "^11.0.4"
+  }
+}

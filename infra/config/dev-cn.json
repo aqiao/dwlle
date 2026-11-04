@@ -1,0 +1,11 @@
+{
+  "envName": "dev-cn",
+  "partition": "aws-cn",
+  "region": "cn-north-1",
+  "vpcCidr": "10.1.0.0/16",
+  "availabilityZones": ["cn-north-1a", "cn-north-1b"],
+  "eksVersion": "1.36",
+  "nodeInstanceType": "t4g.medium",
+  "rdsInstanceClass": "t4g.micro",
+  "removalPolicy": "retain"
+}

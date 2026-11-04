@@ -1,0 +1,10 @@
+{
+  "artifacts": [
+    {
+      "name": "trino-cli",
+      "version": "467",
+      "url": "https://repo1.maven.org/maven2/io/trino/trino-cli/467/trino-cli-467-executable.jar",
+      "sha256": "ac7a83c63f12ca3e9525aa94f5168d7278c51ddcb34527691a3b4948a67be845"
+    }
+  ]
+}
