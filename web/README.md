@@ -1,6 +1,6 @@
 # dwlle Web 界面原型
 
-11 月 Alpha 的高保真前端原型。全部数据均为模拟数据，不连接后端、AWS、DolphinScheduler、Trino 或模型服务。
+11 月 Alpha 的高保真前端原型。除 Workspace 选择器已接入 FastAPI 外，其他页面均使用模拟数据，不连接 AWS、DolphinScheduler、Trino 或模型服务。
 
 ## 启动
 
@@ -41,3 +41,13 @@ npm audit
 ## 企业品牌
 
 品牌区不固定显示 dwlle 对味。示例企业名称与标识位于 `src/config/branding.ts`，可按实际企业修改；生产实现再由租户主题配置提供。
+
+## 前后端联调
+
+先启动 `services/api` 中的 FastAPI，再启动 Vite。开发服务器将 `/api` 代理到 `http://127.0.0.1:8000`。
+
+```bash
+curl -H 'X-Tenant-Id: tenant-a' http://127.0.0.1:5173/api/v1/workspaces
+```
+
+Workspace 选择器使用真实 API 数据；后端不可用时显示“后端不可用，显示演示数据”。

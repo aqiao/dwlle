@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 
 describe('dwlle UI prototype', () => {
@@ -139,5 +139,36 @@ describe('dwlle UI prototype', () => {
     expect(screen.getByRole('button', { name: '个人信息' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '界面偏好' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '退出登录' })).toBeInTheDocument()
+  })
+
+  it('loads workspace options from the API', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => [
+        {
+          id: 1,
+          tenant_id: 'tenant-a',
+          workspace_key: 'retail',
+          name: '零售经营分析',
+          description: '',
+          environment: 'production',
+          created_at: '2026-11-03T00:00:00',
+          updated_at: '2026-11-03T00:00:00',
+        },
+      ],
+    } as Response)
+
+    render(<App />)
+
+    expect(await screen.findByRole('option', { name: '零售经营分析' })).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('shows a clear fallback when the API is unavailable', async () => {
+    vi.mocked(fetch).mockRejectedValueOnce(new Error('offline'))
+
+    render(<App />)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('后端不可用，显示演示数据')
   })
 })

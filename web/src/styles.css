@@ -1140,3 +1140,9 @@ body { font-size: 14px; }
   .workspace-settings-button span { display: none; }
   .workspace-settings-button { padding: 0 7px; }
 }
+
+/* API connection status */
+.workspace-api-status { max-width: 180px; color: #b06a2f; font-size: 10px; white-space: nowrap; }
+@media (max-width: 1000px) {
+  .workspace-api-status { display: none; }
+}
