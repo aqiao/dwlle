@@ -2,35 +2,35 @@
   "artifacts": [
     {
       "name": "trino-cli",
-      "version": "467",
-      "url": "https://repo1.maven.org/maven2/io/trino/trino-cli/467/trino-cli-467-executable.jar",
-      "sha256": "ac7a83c63f12ca3e9525aa94f5168d7278c51ddcb34527691a3b4948a67be845"
+      "version": "484",
+      "url": "https://github.com/trinodb/trino/releases/download/484/trino-cli-484",
+      "sha256": "9a4dc15cf68af58e05165cbf0b5de20fbeb8af0f5280cb43568ac9001aef9b4e"
     },
     {
       "name": "dolphinscheduler",
-      "version": "3.3.2",
-      "url": "https://archive.apache.org/dist/dolphinscheduler/3.3.2/apache-dolphinscheduler-3.3.2-bin.tar.gz",
-      "sha256": "c6ebda8831a2e1b745d1bb550dd84451a5c95176f6d775865bdc354095c7baa7"
+      "version": "3.4.3",
+      "url": "https://downloads.apache.org/dolphinscheduler/3.4.3/apache-dolphinscheduler-3.4.3-bin.tar.gz",
+      "sha256": "ce60f2be4985de3aa9e643a2dda6b4b14013f6b853e8b1759e6782425e0dc7da"
     },
     {
       "name": "seatunnel",
-      "version": "2.3.12",
-      "url": "https://archive.apache.org/dist/seatunnel/2.3.12/apache-seatunnel-2.3.12-bin.tar.gz",
-      "sha256": "4722fa69228cc76b969e715b00440269ecfa5aec252b4198c344c75b719d8f68"
+      "version": "3.0.0",
+      "url": "https://downloads.apache.org/seatunnel/3.0.0/apache-seatunnel-3.0.0-bin.tar.gz",
+      "sha256": "42c3e0d2415e054cc1ab3df1de5bff4cb1d0469c3aa5a40ca76c293cefef9c85"
     },
     {
       "name": "connector-jdbc",
-      "version": "2.3.12",
-      "filename": "connector-jdbc-2.3.12.jar",
-      "url": "https://repo1.maven.org/maven2/org/apache/seatunnel/connector-jdbc/2.3.12/connector-jdbc-2.3.12.jar",
-      "sha256": "76c4b9b4856252f9d8629ccb0894d759a1b4b6e158e1ebc70b204952dbaea4d6"
+      "version": "3.0.0",
+      "filename": "connector-jdbc-3.0.0.jar",
+      "url": "https://repo1.maven.org/maven2/org/apache/seatunnel/connector-jdbc/3.0.0/connector-jdbc-3.0.0.jar",
+      "sha256": "e60700f09f0ffbdf18ec9744674c87d60a4a5180ad4b5288ae244917771f0f2d"
     },
     {
       "name": "connector-iceberg",
-      "version": "2.3.12",
-      "filename": "connector-iceberg-2.3.12.jar",
-      "url": "https://repo1.maven.org/maven2/org/apache/seatunnel/connector-iceberg/2.3.12/connector-iceberg-2.3.12.jar",
-      "sha256": "37ed551aa95be8ae580fbfb8562537425570ad181a1386c483c42cb767f7755d"
+      "version": "3.0.0",
+      "filename": "connector-iceberg-3.0.0.jar",
+      "url": "https://repo1.maven.org/maven2/org/apache/seatunnel/connector-iceberg/3.0.0/connector-iceberg-3.0.0.jar",
+      "sha256": "1d495734066468db6a3fa9502d4454a2cea8d7bda5cbb6a4f262fcd200b8c1b4"
     },
     {
       "name": "postgresql-jdbc",

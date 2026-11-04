@@ -38,7 +38,7 @@ services:
         aws s3 ls
 
   polaris:
-    image: apache/polaris:latest@sha256:347615e736cab2c9be0d8c464552ac930be4755302bb0aeb745216bbae99ba5b
+    image: apache/polaris:1.8.0@sha256:347615e736cab2c9be0d8c464552ac930be4755302bb0aeb745216bbae99ba5b
     ports:
       - "8181:8181"
       - "5005:5005"
@@ -91,7 +91,7 @@ services:
         echo "[dwlle] Polaris catalog is ready"
 
   trino:
-    image: trinodb/trino:467
+    image: trinodb/trino:484
     ports:
       - "8080:8080"
     depends_on:
@@ -110,7 +110,7 @@ services:
       start_period: 30s
 
   seatunnel:
-    image: dwlle/seatunnel:2.3.12
+    image: dwlle/seatunnel:3.0.0
     build:
       context: ../../
       dockerfile: deploy/local/seatunnel/Dockerfile
@@ -127,7 +127,10 @@ services:
       - ./seatunnel:/seatunnel:ro
 
   dolphinscheduler-schema-init:
-    image: apache/dolphinscheduler-standalone-server:3.3.2
+    image: dwlle/dolphinscheduler:3.4.3
+    build: &dolphinscheduler-build
+      context: ../../
+      dockerfile: deploy/local/dolphinscheduler/Dockerfile
     profiles: ["verification"]
     environment: &dolphinscheduler-environment
       DATABASE: postgresql
@@ -140,7 +143,8 @@ services:
     command: ["/opt/dolphinscheduler/tools/bin/upgrade-schema.sh"]
 
   dolphinscheduler:
-    image: apache/dolphinscheduler-standalone-server:3.3.2
+    image: dwlle/dolphinscheduler:3.4.3
+    build: *dolphinscheduler-build
     profiles: ["verification"]
     depends_on:
       dolphinscheduler-schema-init:

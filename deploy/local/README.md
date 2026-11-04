@@ -25,7 +25,7 @@ deploy/local/start.sh
 deploy/local/verify.sh
 ```
 
-启动脚本先通过 `scripts/stage-artifacts` 校验固定版本制品，再等待 RustFS、Polaris、Trino 和 DolphinScheduler 健康。DolphinScheduler 使用官方 `upgrade-schema.sh` 幂等初始化 PostgreSQL 表。SeaTunnel 及其 JDBC、Iceberg 连接器、PostgreSQL 驱动从本地 `artifacts/` 构建验证镜像，不在容器内联网安装。
+启动脚本先通过 `scripts/stage-artifacts` 校验固定版本制品，再等待 RustFS、Polaris、Trino 和 DolphinScheduler 健康。DolphinScheduler 使用官方 `upgrade-schema.sh` 幂等初始化 PostgreSQL 表。SeaTunnel、DolphinScheduler 及所需连接器、PostgreSQL 驱动从本地 `artifacts/` 构建验证镜像，不在容器内联网安装。
 
 验证脚本创建 `demo` 命名空间（如不存在），执行 JDBC → Iceberg 批任务，并检查 Trino 返回 `"1","page_view","101"`。重复执行会先清空再写入示例表数据，不会追加重复行。
 

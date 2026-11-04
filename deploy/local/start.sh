@@ -25,8 +25,8 @@ fi
 
 echo "[dwlle] Verifying pinned artifacts"
 "$ROOT_DIR/scripts/stage-artifacts"
-echo "[dwlle] Building SeaTunnel from verified artifacts"
-"${COMPOSE[@]}" --profile verification build seatunnel
+echo "[dwlle] Building SeaTunnel and DolphinScheduler from verified artifacts"
+"${COMPOSE[@]}" --profile verification build seatunnel dolphinscheduler
 echo "[dwlle] Starting the local data plane"
 "${COMPOSE[@]}" --profile verification up -d --wait \
   rustfs polaris-setup trino dolphinscheduler

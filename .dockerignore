@@ -1,7 +1,8 @@
 **
 !artifacts/
 artifacts/*
-!artifacts/seatunnel-2.3.12
-!artifacts/connector-jdbc-2.3.12.jar
-!artifacts/connector-iceberg-2.3.12.jar
+!artifacts/seatunnel-3.0.0
+!artifacts/connector-jdbc-3.0.0.jar
+!artifacts/connector-iceberg-3.0.0.jar
 !artifacts/postgresql-jdbc-42.4.3.jar
+!artifacts/dolphinscheduler-3.4.3
