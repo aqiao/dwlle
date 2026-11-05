@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-catalog
+  namespace: dwlle
+data:
+  polaris.properties: |
+    connector.name=iceberg
+    iceberg.catalog.type=rest
+    iceberg.rest-catalog.uri=http://polaris:8181/api/catalog
+    iceberg.rest-catalog.security=OAUTH2
+    iceberg.rest-catalog.oauth2.credential=${ENV:CLIENT_ID}:${ENV:CLIENT_SECRET}
+    iceberg.rest-catalog.oauth2.server-uri=http://polaris:8181/api/catalog/v1/oauth/tokens
+    iceberg.rest-catalog.oauth2.scope=PRINCIPAL_ROLE:ALL
+    iceberg.rest-catalog.warehouse=quickstart_catalog
+    iceberg.rest-catalog.vended-credentials-enabled=true
+    fs.s3.enabled=true
+    s3.region=__REGION__
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trino
+  namespace: dwlle
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trino
+  template:
+    metadata:
+      labels:
+        app: trino
+      annotations:
+        dwlle/config-sha256: "__TRINO_CONFIG_SHA256__"
+        dwlle/polaris-auth-sha256: "__POLARIS_AUTH_SHA256__"
+    spec:
+      serviceAccountName: data-plane
+      containers:
+        - name: trino
+          image: __REPOSITORY_URI__@__TRINO_IMAGE_DIGEST__
+          ports:
+            - containerPort: 8080
+          env:
+            - name: CLIENT_ID
+              value: root
+            - name: CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: polaris-auth
+                  key: client-secret
+          volumeMounts:
+            - name: catalog
+              mountPath: /etc/trino/catalog
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1536Mi
+            limits:
+              cpu: "2"
+              memory: 2560Mi
+          readinessProbe:
+            httpGet:
+              path: /v1/info
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /v1/info
+              port: 8080
+            initialDelaySeconds: 90
+            periodSeconds: 20
+            failureThreshold: 10
+      volumes:
+        - name: catalog
+          configMap:
+            name: trino-catalog
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trino
+  namespace: dwlle
+spec:
+  selector:
+    app: trino
+  ports:
+    - port: 8080
+      targetPort: 8080

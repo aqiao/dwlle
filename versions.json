@@ -1,0 +1,91 @@
+{
+  "artifacts": [
+    {
+      "name": "trino-cli",
+      "version": "484",
+      "url": "https://github.com/trinodb/trino/releases/download/484/trino-cli-484",
+      "sha256": "9a4dc15cf68af58e05165cbf0b5de20fbeb8af0f5280cb43568ac9001aef9b4e"
+    },
+    {
+      "name": "dolphinscheduler",
+      "version": "3.4.3",
+      "url": "https://downloads.apache.org/dolphinscheduler/3.4.3/apache-dolphinscheduler-3.4.3-bin.tar.gz",
+      "sha256": "ce60f2be4985de3aa9e643a2dda6b4b14013f6b853e8b1759e6782425e0dc7da"
+    },
+    {
+      "name": "seatunnel",
+      "version": "3.0.0",
+      "url": "https://downloads.apache.org/seatunnel/3.0.0/apache-seatunnel-3.0.0-bin.tar.gz",
+      "sha256": "42c3e0d2415e054cc1ab3df1de5bff4cb1d0469c3aa5a40ca76c293cefef9c85"
+    },
+    {
+      "name": "connector-jdbc",
+      "version": "3.0.0",
+      "filename": "connector-jdbc-3.0.0.jar",
+      "url": "https://repo1.maven.org/maven2/org/apache/seatunnel/connector-jdbc/3.0.0/connector-jdbc-3.0.0.jar",
+      "sha256": "e60700f09f0ffbdf18ec9744674c87d60a4a5180ad4b5288ae244917771f0f2d"
+    },
+    {
+      "name": "connector-iceberg",
+      "version": "3.0.0",
+      "filename": "connector-iceberg-3.0.0.jar",
+      "url": "https://repo1.maven.org/maven2/org/apache/seatunnel/connector-iceberg/3.0.0/connector-iceberg-3.0.0.jar",
+      "sha256": "1d495734066468db6a3fa9502d4454a2cea8d7bda5cbb6a4f262fcd200b8c1b4"
+    },
+    {
+      "name": "postgresql-jdbc",
+      "version": "42.4.3",
+      "filename": "postgresql-jdbc-42.4.3.jar",
+      "url": "https://repo1.maven.org/maven2/org/postgresql/postgresql/42.4.3/postgresql-42.4.3.jar",
+      "sha256": "70b65eaec096450921c600c426fe407325332fab441769a51900569f5c83dbc5"
+    },
+    {
+      "name": "keycloak",
+      "version": "26.8.1",
+      "filename": "keycloak-26.8.1.tar.gz",
+      "url": "https://repo1.maven.org/maven2/org/keycloak/keycloak-quarkus-dist/26.8.1/keycloak-quarkus-dist-26.8.1.tar.gz",
+      "sha256": "4e2740b181faa2ea623a1c2ecf00855935311e546046e2f857615a47ed24cbe8"
+    },
+    {
+      "name": "kubectl",
+      "version": "v1.36.0",
+      "filename": "kubectl-v1.36.0-arm64",
+      "url": "https://dl.k8s.io/release/v1.36.0/bin/linux/arm64/kubectl",
+      "sha256": "9f9d9c44a7b5264515ac9da5991584e2395bd50662e651132337e7b4d0c56f8f"
+    }
+  ],
+  "images": [
+    {
+      "name": "trino-image",
+      "version": "484",
+      "reference": "trinodb/trino:484",
+      "digest": "sha256:2704eb53935af5e582d63d6033e9bf99d20c325e9b0e30b1016ef59a4773979f",
+      "filename": "trino-484.tar",
+      "sha256": "887c451bea289d0071734372d5c267639a6d3e9294e62e6f8984632ac473c83d"
+    },
+    {
+      "name": "polaris-image",
+      "version": "1.8.0",
+      "reference": "apache/polaris:1.8.0",
+      "digest": "sha256:347615e736cab2c9be0d8c464552ac930be4755302bb0aeb745216bbae99ba5b",
+      "filename": "polaris-1.8.0.tar",
+      "sha256": "0590c3155e0b7a3f276d94a6df4c1bf98143ece9fa407f0d6a190e32b8cc8f83"
+    },
+    {
+      "name": "curl-image",
+      "version": "8.23.0",
+      "reference": "alpine/curl:8.23.0",
+      "digest": "sha256:96a0479d24c465a7d8d29ebf5ebe92b82536e8443a870d2654e66d3ac235441f",
+      "filename": "curl-8.23.0.tar",
+      "sha256": "0dad58c5b66b349ace6934f80076dd0a6198e1c66b53c4481794a2868c178417"
+    },
+    {
+      "name": "eclipse-temurin-image",
+      "version": "8u462-b08-jre",
+      "reference": "eclipse-temurin:8u462-b08-jre",
+      "digest": "sha256:bca0fb7cd3cc388e2dc1f9942e95a1d3306903c2d7ca670e45c440df7ca3ec52",
+      "filename": "eclipse-temurin-8u462-b08-jre.tar",
+      "sha256": "22a042b8b151882640ea99952184e2629a0c95315cb033bd96068bdc8de1ee1a"
+    }
+  ]
+}

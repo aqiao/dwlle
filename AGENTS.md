@@ -27,6 +27,8 @@ dwlle/
 │   ├── assets/                # 随 CDK Asset 上传的脚本、配置模板
 │   └── test/
 ├── scripts/                   # 运维/准备脚本，如 stage-artifacts
+├── deploy/local/              # 本地数据平面验证与端到端脚本
+├── deploy/aws/                # AWS 私网部署清单与 SSM 执行脚本
 ├── services/api/              # FastAPI 后端（阶段 2）
 ├── services/agent/            # Agent（阶段 3）
 ├── web/                       # 前端（阶段 2）

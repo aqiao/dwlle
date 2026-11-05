@@ -19,6 +19,7 @@
 | [0013](0013-workspace-and-solution-market.md) | 我的工作空间与方案市场分离 | 已接受 |
 | [0014](0014-workspace-terminology.md) | 将 Project 统一命名为 Workspace | 已接受 |
 | [0015](0015-workflow-terminology.md) | 将 Pipeline 统一命名为 Workflow | 已接受 |
+| [0016](0016-keycloak-and-bedrock-selection.md) | Keycloak OIDC 与 Amazon Bedrock 首个模型提供方 | 已接受 |
 
 模板：
 

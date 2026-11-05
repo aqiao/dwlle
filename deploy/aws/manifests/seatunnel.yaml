@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: seatunnel-job
+  namespace: dwlle
+data:
+  jdbc-iceberg.conf: |
+    env {
+      parallelism = 1
+      job.mode = "BATCH"
+    }
+    source {
+      Jdbc {
+        driver = org.postgresql.Driver
+        url = ${LOCAL_POSTGRES_JDBC_URL}
+        username = ${LOCAL_POSTGRES_USER}
+        password = ${LOCAL_POSTGRES_PASSWORD}
+        query = "SELECT 1 AS id, 'page_view' AS event_type, 101 AS user_id"
+      }
+    }
+    transform {
+    }
+    sink {
+      Iceberg {
+        catalog_name = "quickstart_catalog"
+        namespace = "demo"
+        table = "events"
+        data_save_mode = "DROP_DATA"
+        iceberg.catalog.config = {
+          type = "rest"
+          warehouse = "quickstart_catalog"
+          uri = "http://polaris:8181/api/catalog"
+          rest.auth.type = "oauth2"
+          credential = ${POLARIS_CREDENTIAL}
+          oauth2-server-uri = "http://polaris:8181/api/catalog/v1/oauth/tokens"
+          scope = "PRINCIPAL_ROLE:ALL"
+          header.Polaris-Realm = "POLARIS"
+          header.X-Iceberg-Access-Delegation = "vended-credentials"
+          io-impl = "org.apache.iceberg.aws.s3.S3FileIO"
+          client.region = "__REGION__"
+        }
+        iceberg.table.write-props = {
+          write.format.default = "parquet"
+        }
+      }
+    }
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seatunnel-jdbc-iceberg
+  namespace: dwlle
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: data-plane
+      containers:
+        - name: seatunnel
+          image: __REPOSITORY_URI__@__SEATUNNEL_IMAGE_DIGEST__
+          command: ["/opt/seatunnel/bin/seatunnel.sh", "-m", "local", "-c", "/seatunnel/jdbc-iceberg.conf"]
+          env:
+            - name: RDS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: rds-dwlle
+                  key: host
+            - name: LOCAL_POSTGRES_JDBC_URL
+              value: jdbc:postgresql://$(RDS_HOST):5432/dolphinscheduler
+            - name: LOCAL_POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rds-dwlle
+                  key: username
+            - name: LOCAL_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rds-dwlle
+                  key: password
+            - name: POLARIS_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: polaris-auth
+                  key: client-secret
+            - name: POLARIS_CREDENTIAL
+              value: root:$(POLARIS_CLIENT_SECRET)
+          volumeMounts:
+            - name: config
+              mountPath: /seatunnel
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+      volumes:
+        - name: config
+          configMap:
+            name: seatunnel-job

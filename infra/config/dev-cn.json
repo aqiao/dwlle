@@ -1,0 +1,15 @@
+{
+  "envName": "dev-cn",
+  "partition": "aws-cn",
+  "region": "cn-north-1",
+  "vpcCidr": "10.1.0.0/16",
+  "availabilityZones": ["cn-north-1a", "cn-north-1b"],
+  "eksVersion": "1.36",
+  "nodeInstanceType": "t4g.medium",
+  "nodeAmiType": "AL2023_ARM_64_STANDARD",
+  "rdsInstanceClass": "t4g.micro",
+  "rdsEngineVersion": "16.15",
+  "bastionAmiId": "ami-03b82562744ca81dc",
+  "bastionInstanceType": "t4g.micro",
+  "removalPolicy": "retain"
+}
