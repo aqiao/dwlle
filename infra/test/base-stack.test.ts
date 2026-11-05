@@ -38,6 +38,9 @@ describe("DwlleBaseStack", () => {
       template.hasResourceProperties("AWS::EKS::Nodegroup", {
         AmiType: config.nodeAmiType,
       });
+      expect(json).toContain("dwlle-deployers");
+      expect(json).toContain("pods/exec");
+      expect(json).not.toContain("system:masters");
 
       const ingressResources = template.findResources(
         "AWS::EC2::SecurityGroupIngress",

@@ -31,11 +31,14 @@ spec:
     metadata:
       labels:
         app: trino
+      annotations:
+        dwlle/config-sha256: "__TRINO_CONFIG_SHA256__"
+        dwlle/polaris-auth-sha256: "__POLARIS_AUTH_SHA256__"
     spec:
       serviceAccountName: data-plane
       containers:
         - name: trino
-          image: __REPOSITORY_URI__:trino-484
+          image: __REPOSITORY_URI__@__TRINO_IMAGE_DIGEST__
           ports:
             - containerPort: 8080
           env:

@@ -5,11 +5,23 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MANIFEST="$ROOT_DIR/versions.json"
 ARTIFACT_DIR="$ROOT_DIR/artifacts"
 
+VERIFY_ONLY=false
+if [[ "${1:-}" == "--verify-only" ]]; then
+  VERIFY_ONLY=true
+elif [[ $# -ne 0 ]]; then
+  echo "Usage: $0 [--verify-only]" >&2
+  exit 2
+fi
+
 mkdir -p "$ARTIFACT_DIR"
 
 while IFS='|' read -r name version url expected_sha filename; do
   destination="$ARTIFACT_DIR/${filename:-${name}-${version}}"
   if [[ ! -f "$destination" ]]; then
+    if [[ "$VERIFY_ONLY" == "true" ]]; then
+      echo "[dwlle] Missing verified artifact: $destination" >&2
+      exit 1
+    fi
     echo "[dwlle] Downloading $name $version"
     curl -fL --retry 3 -o "$destination" "$url"
   fi

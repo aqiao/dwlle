@@ -58,7 +58,7 @@ spec:
       serviceAccountName: data-plane
       containers:
         - name: seatunnel
-          image: __REPOSITORY_URI__:seatunnel-3.0.0
+          image: __REPOSITORY_URI__@__SEATUNNEL_IMAGE_DIGEST__
           command: ["/opt/seatunnel/bin/seatunnel.sh", "-m", "local", "-c", "/seatunnel/jdbc-iceberg.conf"]
           env:
             - name: RDS_HOST

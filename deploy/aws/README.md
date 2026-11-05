@@ -8,7 +8,16 @@
 - 本机有对应账号的 AWS Profile、Docker 和 Docker Compose。
 - bastion 的 SSM Agent 在线，私有 EKS 节点与 RDS 已就绪。
 
-## 部署与验证
+## 制品准备与部署验证
+
+首次准备或主动更新制品时，在可联网的开发机显式执行：
+
+```bash
+scripts/stage-artifacts
+scripts/stage-images
+```
+
+这两个准备命令将第三方文件和镜像保存到 `artifacts/`，并按 `versions.json` 校验版本、上游 digest 和 SHA256。部署入口只执行 `--verify-only` 校验和本地 `docker load`，缺少制品会直接失败，不会从公网回退下载。
 
 ```bash
 AWS_PROFILE=global_admin deploy/aws/deploy-data-plane.sh dev-global
@@ -16,9 +25,9 @@ AWS_PROFILE=global_admin deploy/aws/deploy-data-plane.sh dev-global
 
 脚本会部署 DolphinScheduler、Polaris、Trino，执行 SeaTunnel 批任务，并检查 Trino 返回 `"1","page_view","101"`。最后输出 SSM 命令 ID、组件日志和查询结果。重复执行会重建一次性 Job，SeaTunnel 使用 `DROP_DATA`，不会追加重复示例记录。
 
-部署清单在 `manifests/`，本地入口为 `deploy-data-plane.sh`，私网执行入口为 `remote-data-plane.sh`。数据库和 Polaris 凭据只在执行时读取或生成，不写入仓库、清单或日志。
+部署清单在 `manifests/`，本地入口为 `deploy-data-plane.sh`，私网执行入口为 `remote-data-plane.sh`。数据库和 Polaris 凭据只在执行时读取或生成，不写入仓库、清单或日志。Kubernetes 使用 ECR 不可变镜像 digest；ConfigMap 和 Secret 摘要写入 Pod template，内容变化会触发滚动更新。
 
-EKS Pod Identity 为 Polaris 提供服务身份，独立的 `IcebergStorageRole` 仅持有数据桶读写权限并信任该服务身份。Polaris 通过 STS `AssumeRole` 向 SeaTunnel 和 Trino 下发短期 S3 凭据，组件不使用静态 AWS 密钥。
+EKS Pod Identity 为 Polaris 提供服务身份，独立的 `IcebergStorageRole` 仅持有数据桶读写权限并信任该服务身份。Polaris 通过 STS `AssumeRole` 向 SeaTunnel 和 Trino 下发短期 S3 凭据，组件不使用静态 AWS 密钥。bastion 通过 `dwlle-deployers` 组和命名空间 Role 部署，不具有集群管理员权限。
 
 当前 Polaris 使用内存元数据，仅用于第一周技术验证；生产持久化、HA、OIDC 和客户入口不在本任务范围。
 

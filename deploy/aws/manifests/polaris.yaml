@@ -22,11 +22,14 @@ spec:
     metadata:
       labels:
         app: polaris
+      annotations:
+        dwlle/config-sha256: "__POLARIS_CONFIG_SHA256__"
+        dwlle/polaris-auth-sha256: "__POLARIS_AUTH_SHA256__"
     spec:
       serviceAccountName: data-plane
       containers:
         - name: polaris
-          image: __REPOSITORY_URI__:polaris-1.8.0
+          image: __REPOSITORY_URI__@__POLARIS_IMAGE_DIGEST__
           ports:
             - containerPort: 8181
             - containerPort: 8182
@@ -127,7 +130,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: setup
-          image: __REPOSITORY_URI__:curl-8.23.0
+          image: __REPOSITORY_URI__@__CURL_IMAGE_DIGEST__
           env:
             - name: CLIENT_ID
               value: root

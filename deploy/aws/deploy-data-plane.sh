@@ -7,7 +7,8 @@ ENV_NAME="${1:-dev-global}"
 AWS_REGION="${AWS_REGION:-$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["region"])' "$ROOT_DIR/infra/config/$ENV_NAME.json")}"
 export AWS_REGION
 
-"$ROOT_DIR/scripts/stage-artifacts"
+"$ROOT_DIR/scripts/stage-artifacts" --verify-only
+"$ROOT_DIR/scripts/stage-images" --verify-only
 
 outputs="$(aws cloudformation describe-stacks \
   --stack-name "Dwlle-$ENV_NAME-DataPlane" \
@@ -32,17 +33,15 @@ REPOSITORY_URI="$(aws ecr describe-repositories \
   --query 'repositories[0].repositoryUri' --output text)"
 aws ecr get-login-password | docker login --username AWS --password-stdin "$REPOSITORY_URI"
 
+echo "[dwlle] Loading verified deployment images"
+while IFS='|' read -r reference digest filename; do
+  docker load -i "$ROOT_DIR/artifacts/$filename" >/dev/null
+  docker tag "$reference@$digest" "$reference"
+done < <(MANIFEST="$ROOT_DIR/versions.json" python3 -c 'import json,os; data=json.load(open(os.environ["MANIFEST"])); [print("|".join([item["reference"], item["digest"], item["filename"]])) for item in data["images"]]')
+
 echo "[dwlle] Building deployment images from verified artifacts"
 docker compose -f "$ROOT_DIR/deploy/local/docker-compose.yml" --profile verification build \
   seatunnel dolphinscheduler
-ensure_image() {
-  if ! docker image inspect "$1" >/dev/null 2>&1; then
-    docker pull "$1"
-  fi
-}
-ensure_image trinodb/trino:484
-ensure_image apache/polaris:1.8.0@sha256:347615e736cab2c9be0d8c464552ac930be4755302bb0aeb745216bbae99ba5b
-ensure_image alpine/curl:8.23.0
 
 push_image() {
   local source="$1"
@@ -54,8 +53,20 @@ push_image() {
 push_image dwlle/dolphinscheduler:3.4.3 ds-3.4.3
 push_image dwlle/seatunnel:3.0.0 seatunnel-3.0.0
 push_image trinodb/trino:484 trino-484
-push_image apache/polaris:1.8.0@sha256:347615e736cab2c9be0d8c464552ac930be4755302bb0aeb745216bbae99ba5b polaris-1.8.0
+push_image apache/polaris:1.8.0 polaris-1.8.0
 push_image alpine/curl:8.23.0 curl-8.23.0
+
+image_digest() {
+  aws ecr describe-images \
+    --repository-name "$REPOSITORY_NAME" \
+    --image-ids "imageTag=$1" \
+    --query 'imageDetails[0].imageDigest' --output text
+}
+DS_IMAGE_DIGEST="$(image_digest ds-3.4.3)"
+SEATUNNEL_IMAGE_DIGEST="$(image_digest seatunnel-3.0.0)"
+TRINO_IMAGE_DIGEST="$(image_digest trino-484)"
+POLARIS_IMAGE_DIGEST="$(image_digest polaris-1.8.0)"
+CURL_IMAGE_DIGEST="$(image_digest curl-8.23.0)"
 
 echo "[dwlle] Uploading manifests and scripts"
 aws s3 cp "$ROOT_DIR/artifacts/kubectl-v1.36.0-arm64" \
@@ -63,7 +74,8 @@ aws s3 cp "$ROOT_DIR/artifacts/kubectl-v1.36.0-arm64" \
 aws s3 cp "$ROOT_DIR/deploy/aws/" "s3://$ARTIFACTS_BUCKET/deployment/" --recursive
 
 export ARTIFACTS_BUCKET DATA_BUCKET REPOSITORY_URI CLUSTER_NAME DATABASE_SECRET_ARN STORAGE_ROLE_ARN
-commands="$(python3 -c 'import json,os; env=os.environ; command=" && ".join(["aws s3 cp s3://{}/deployment/remote-data-plane.sh /tmp/dwlle-remote.sh".format(env["ARTIFACTS_BUCKET"]), "chmod 0755 /tmp/dwlle-remote.sh", "ARTIFACTS_BUCKET={ARTIFACTS_BUCKET} DATA_BUCKET={DATA_BUCKET} REPOSITORY_URI={REPOSITORY_URI} CLUSTER_NAME={CLUSTER_NAME} AWS_REGION={AWS_REGION} DATABASE_SECRET_ARN={DATABASE_SECRET_ARN} STORAGE_ROLE_ARN={STORAGE_ROLE_ARN} bash /tmp/dwlle-remote.sh".format_map(env)]); print(json.dumps({"commands":[command],"executionTimeout":["3600"]}))')"
+export DS_IMAGE_DIGEST SEATUNNEL_IMAGE_DIGEST TRINO_IMAGE_DIGEST POLARIS_IMAGE_DIGEST CURL_IMAGE_DIGEST
+commands="$(python3 -c 'import json,os; env=os.environ; names=["ARTIFACTS_BUCKET","DATA_BUCKET","REPOSITORY_URI","CLUSTER_NAME","AWS_REGION","DATABASE_SECRET_ARN","STORAGE_ROLE_ARN","DS_IMAGE_DIGEST","SEATUNNEL_IMAGE_DIGEST","TRINO_IMAGE_DIGEST","POLARIS_IMAGE_DIGEST","CURL_IMAGE_DIGEST"]; assignments=" ".join("{}={}".format(name,env[name]) for name in names); command=" && ".join(["aws s3 cp s3://{}/deployment/remote-data-plane.sh /tmp/dwlle-remote.sh".format(env["ARTIFACTS_BUCKET"]), "chmod 0755 /tmp/dwlle-remote.sh", assignments+" bash /tmp/dwlle-remote.sh"]); print(json.dumps({"commands":[command],"executionTimeout":["3600"]}))')"
 echo "[dwlle] Starting private deployment through SSM"
 command_id="$(aws ssm send-command \
   --instance-ids "$BASTION_INSTANCE_ID" \

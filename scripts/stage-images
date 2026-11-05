@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MANIFEST="$ROOT_DIR/versions.json"
+ARTIFACT_DIR="$ROOT_DIR/artifacts"
+VERIFY_ONLY=false
+
+if [[ "${1:-}" == "--verify-only" ]]; then
+  VERIFY_ONLY=true
+elif [[ $# -ne 0 ]]; then
+  echo "Usage: $0 [--verify-only]" >&2
+  exit 2
+fi
+
+mkdir -p "$ARTIFACT_DIR"
+
+while IFS='|' read -r name version reference digest filename expected_sha; do
+  destination="$ARTIFACT_DIR/$filename"
+  if [[ ! -f "$destination" ]]; then
+    if [[ "$VERIFY_ONLY" == "true" ]]; then
+      echo "[dwlle] Missing verified image archive: $destination" >&2
+      exit 1
+    fi
+    echo "[dwlle] Preparing $name $version from $reference@$digest"
+    docker pull "$reference@$digest"
+    docker tag "$reference@$digest" "$reference"
+    temporary="$destination.tmp"
+    docker save -o "$temporary" "$reference"
+    mv "$temporary" "$destination"
+  fi
+
+  actual_sha="$(shasum -a 256 "$destination" | cut -d ' ' -f1)"
+  if [[ "$actual_sha" != "$expected_sha" ]]; then
+    echo "[dwlle] SHA256 mismatch for $name $version" >&2
+    exit 1
+  fi
+  echo "[dwlle] Verified $name $version"
+done < <(MANIFEST="$MANIFEST" python3 -c 'import json,os; data=json.load(open(os.environ["MANIFEST"])); [print("|".join([item["name"], item["version"], item["reference"], item["digest"], item["filename"], item["sha256"]])) for item in data["images"]]')

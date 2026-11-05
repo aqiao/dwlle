@@ -71,6 +71,96 @@ export class DwlleBaseStack extends cdk.Stack {
       maxSize: 3,
       subnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
     });
+    const dataPlaneNamespace = new eks.KubernetesManifest(
+      this,
+      "DataPlaneNamespace",
+      {
+        cluster,
+        overwrite: true,
+        manifest: [
+          {
+            apiVersion: "v1",
+            kind: "Namespace",
+            metadata: { name: "dwlle" },
+          },
+        ],
+      },
+    );
+    const dataPlaneRbac = new eks.KubernetesManifest(this, "DataPlaneRbac", {
+      cluster,
+      overwrite: true,
+      manifest: [
+        {
+          apiVersion: "rbac.authorization.k8s.io/v1",
+          kind: "Role",
+          metadata: { name: "dwlle-deployer", namespace: "dwlle" },
+          rules: [
+            {
+              apiGroups: [""],
+              resources: [
+                "configmaps",
+                "secrets",
+                "serviceaccounts",
+                "services",
+              ],
+              verbs: ["get", "list", "watch", "create", "update", "patch"],
+            },
+            {
+              apiGroups: [""],
+              resources: ["pods"],
+              verbs: ["get", "list", "watch"],
+            },
+            {
+              apiGroups: [""],
+              resources: ["pods/log"],
+              verbs: ["get"],
+            },
+            {
+              apiGroups: [""],
+              resources: ["pods/exec"],
+              verbs: ["create"],
+            },
+            {
+              apiGroups: ["apps"],
+              resources: ["deployments"],
+              verbs: ["get", "list", "watch", "create", "update", "patch"],
+            },
+            {
+              apiGroups: ["batch"],
+              resources: ["jobs"],
+              verbs: [
+                "get",
+                "list",
+                "watch",
+                "create",
+                "update",
+                "patch",
+                "delete",
+              ],
+            },
+          ],
+        },
+        {
+          apiVersion: "rbac.authorization.k8s.io/v1",
+          kind: "RoleBinding",
+          metadata: { name: "dwlle-deployers", namespace: "dwlle" },
+          subjects: [
+            {
+              kind: "Group",
+              name: "dwlle-deployers",
+              apiGroup: "rbac.authorization.k8s.io",
+            },
+          ],
+          roleRef: {
+            kind: "Role",
+            name: "dwlle-deployer",
+            apiGroup: "rbac.authorization.k8s.io",
+          },
+        },
+      ],
+    });
+    dataPlaneRbac.node.addDependency(dataPlaneNamespace);
+
     const dataPlaneRole = new iam.Role(this, "DataPlaneRole", {
       assumedBy: new iam.ServicePrincipal(`pods.eks.${cdk.Aws.URL_SUFFIX}`),
     });
@@ -165,7 +255,7 @@ export class DwlleBaseStack extends cdk.Stack {
       }),
     );
     cluster.awsAuth.addRoleMapping(bastionRole, {
-      groups: ["system:masters"],
+      groups: ["dwlle-deployers"],
     });
 
     const bastionSecurityGroup = new ec2.SecurityGroup(

@@ -43,7 +43,16 @@
 - [x] 标准 1 —— `AWS_PROFILE=global_admin npx cdk deploy -c env=dev-global --require-approval never`：stack 为 `UPDATE_COMPLETE`；AWS API 确认 RDS 16.15、私有 EKS、ECR 和 S3 均存在。
 - [x] 标准 2 —— SSM `c59d3e01-9030-4a15-9ec6-e15108eb27ae`：三个常驻组件均 `1/1 Running`；部署日志确认制品来自 artifacts bucket 和 ECR。
 - [x] 标准 3 —— SSM `25ec8b85-6d84-40dd-987e-de2fb992b9e3`：真实链路成功并返回预期记录；完整入口 `AWS_PROFILE=global_admin deploy/aws/deploy-data-plane.sh dev-global` 再次执行，SSM `b11dc5d8-8366-4883-89ed-cf501723fe53` 为 `Success`；最终 SSM `c59d3e01-9030-4a15-9ec6-e15108eb27ae` 返回 `count(*) = 1`，两个 Job 均 `Complete`，组件日志可读取。
-- [x] 标准 4 —— `npm run build`、`npm run lint`、`npm test` 通过（2 个 suite、5 项测试）；`npx cdk synth -c env=dev-global` 和 `npx cdk synth -c env=dev-cn` 均成功。`scripts/stage-artifacts`、shell/YAML 语法检查、`git diff --check` 通过；当前分支为 `task/T041-aws-data-plane-deployment`。
+- [x] 标准 4 —— `npm run build`、`npm run lint`、`npm test` 通过（2 个 suite、6 项测试）；`npx cdk synth -c env=dev-global` 和 `npx cdk synth -c env=dev-cn` 均成功。`scripts/stage-artifacts --verify-only`、`scripts/stage-images --verify-only`、shell/YAML 语法检查、`git diff --check` 通过；当前分支为 `task/T041-aws-data-plane-deployment`。
+
+### Kiro IDE 独立审核与修复
+
+- Kiro 提出的 4 项发现均经代码复核确认：部署入口公网镜像回退、bastion 的 `system:masters`、配置/Secret/同标签镜像不触发更新，以及对应测试缺口。
+- 公网下载现在只存在于显式制品准备步骤；部署入口只校验并加载本地制品。镜像使用 ECR digest，ConfigMap/Secret 摘要写入 Pod template。
+- CDK 预置 `dwlle` Namespace、Role 和 RoleBinding，bastion 仅属于 `dwlle-deployers`。实测 `kubectl auth can-i get secrets -n kube-system` 为 `no`，`kubectl auth can-i update deployments.apps -n dwlle` 为 `yes`。
+- 新增回归测试覆盖离线入口、不可变镜像、更新摘要、一次性 Job 重建顺序和 RBAC。
+- 修复后的完整部署 SSM `c56bdb8b-9bb3-4f4e-ad64-d3cb2ed6b594` 为 `Success`，所有工作负载使用 ECR digest，配置和 Secret 摘要已写入 Pod template。
+- 无变更第二次完整部署 SSM `6260a3a4-7a2c-4562-8145-f234304be438` 为 `Success`；最终 SSM `438a58a0-da0e-4954-8017-a173a67c3841` 确认 DS、Polaris、Trino 的 Pod UID 与部署前一致，`create pods` 和跨命名空间 Secret 访问均为 `no`，`count(*) = 1`，两个 Job 均为 `Complete`。
 
 ### 偏离任务说明之处
 
@@ -52,5 +61,5 @@
 
 ### 发现的问题 / 需要设计方决定的事
 
-- 当前 Polaris 使用内存元数据，组件为单副本，仅适用于本周技术验证；生产持久化、HA、配置变更滚动升级策略仍需后续任务设计。
-- 早期失败部署遗留资源均未删除：旧 VPC `vpc-0733089b4bfaaee0a`、旧 RDS `dwlle-dev-global-base-databaseb269d8bb-vt5toxkmdllb`、旧 artifacts bucket `dwlle-dev-global-base-artifactsbucket2aac5544-in1t0uf1hq6i`、旧 data bucket `dwlle-dev-global-base-databuckete3889a50-ptrnfdatdarl`、旧 ECR `dwlle-dev-global-base-repository22e53bbd-mfbz2ngqsczz`。后续是否清理由用户单独决定，本任务未做破坏性清理。
+- 当前 Polaris 使用内存元数据，组件为单副本，仅适用于本周技术验证；生产持久化和 HA 仍需后续任务设计。
+- 早期失败部署遗留的 VPC、RDS、S3、ECR 和旧日志组已由用户手动清理，本次修复未执行破坏性清理。

@@ -3,7 +3,8 @@ set -euo pipefail
 
 : "${ARTIFACTS_BUCKET:?}" "${DATA_BUCKET:?}" "${REPOSITORY_URI:?}"
 : "${CLUSTER_NAME:?}" "${AWS_REGION:?}" "${DATABASE_SECRET_ARN:?}"
-: "${STORAGE_ROLE_ARN:?}"
+: "${STORAGE_ROLE_ARN:?}" "${DS_IMAGE_DIGEST:?}" "${SEATUNNEL_IMAGE_DIGEST:?}"
+: "${TRINO_IMAGE_DIGEST:?}" "${POLARIS_IMAGE_DIGEST:?}" "${CURL_IMAGE_DIGEST:?}"
 
 WORK_DIR=/tmp/dwlle-deployment
 rm -rf "$WORK_DIR"
@@ -14,20 +15,10 @@ aws s3 cp "s3://$ARTIFACTS_BUCKET/deployment/" "$WORK_DIR/" --recursive
 aws s3 cp "s3://$ARTIFACTS_BUCKET/kubectl/v1.36.0/arm64/kubectl" /usr/local/bin/kubectl
 chmod 0755 /usr/local/bin/kubectl
 
-for file in "$WORK_DIR"/manifests/*.yaml; do
-  sed -i \
-    -e "s|__REPOSITORY_URI__|$REPOSITORY_URI|g" \
-    -e "s|__DATA_BUCKET__|$DATA_BUCKET|g" \
-    -e "s|__REGION__|$AWS_REGION|g" \
-    -e "s|__STORAGE_ROLE_ARN__|$STORAGE_ROLE_ARN|g" \
-    "$file"
-done
-
 aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
 export KUBECONFIG=/root/.kube/config
 cluster_arn="$(aws eks describe-cluster --name "$CLUSTER_NAME" --region "$AWS_REGION" --query 'cluster.arn' --output text)"
 kubectl config use-context "$cluster_arn"
-kubectl apply -f "$WORK_DIR/manifests/namespace.yaml"
 
 secret_json="$(aws secretsmanager get-secret-value \
   --secret-id "$DATABASE_SECRET_ARN" \
@@ -47,7 +38,38 @@ if ! kubectl get secret polaris-auth -n dwlle >/dev/null 2>&1; then
     --dry-run=client -o yaml | kubectl apply -f -
 fi
 
+RDS_SECRET_SHA256="$(SECRET_JSON="$secret_json" python3 -c 'import hashlib,os; print(hashlib.sha256(os.environ["SECRET_JSON"].encode()).hexdigest())')"
+POLARIS_AUTH_SHA256="$(kubectl get secret polaris-auth -n dwlle -o json | python3 -c 'import hashlib,json,sys; data=json.load(sys.stdin)["data"]; print(hashlib.sha256(json.dumps(data,sort_keys=True).encode()).hexdigest())')"
+
+for file in "$WORK_DIR"/manifests/*.yaml; do
+  sed -i \
+    -e "s|__REPOSITORY_URI__|$REPOSITORY_URI|g" \
+    -e "s|__DATA_BUCKET__|$DATA_BUCKET|g" \
+    -e "s|__REGION__|$AWS_REGION|g" \
+    -e "s|__STORAGE_ROLE_ARN__|$STORAGE_ROLE_ARN|g" \
+    "$file"
+done
+DS_CONFIG_SHA256="$(sha256sum "$WORK_DIR/manifests/dolphinscheduler.yaml" | cut -d ' ' -f1)"
+POLARIS_CONFIG_SHA256="$(sha256sum "$WORK_DIR/manifests/polaris.yaml" | cut -d ' ' -f1)"
+TRINO_CONFIG_SHA256="$(sha256sum "$WORK_DIR/manifests/trino.yaml" | cut -d ' ' -f1)"
+
+for file in "$WORK_DIR"/manifests/*.yaml; do
+  sed -i \
+    -e "s|__DS_IMAGE_DIGEST__|$DS_IMAGE_DIGEST|g" \
+    -e "s|__SEATUNNEL_IMAGE_DIGEST__|$SEATUNNEL_IMAGE_DIGEST|g" \
+    -e "s|__TRINO_IMAGE_DIGEST__|$TRINO_IMAGE_DIGEST|g" \
+    -e "s|__POLARIS_IMAGE_DIGEST__|$POLARIS_IMAGE_DIGEST|g" \
+    -e "s|__CURL_IMAGE_DIGEST__|$CURL_IMAGE_DIGEST|g" \
+    -e "s|__DS_CONFIG_SHA256__|$DS_CONFIG_SHA256|g" \
+    -e "s|__POLARIS_CONFIG_SHA256__|$POLARIS_CONFIG_SHA256|g" \
+    -e "s|__TRINO_CONFIG_SHA256__|$TRINO_CONFIG_SHA256|g" \
+    -e "s|__RDS_SECRET_SHA256__|$RDS_SECRET_SHA256|g" \
+    -e "s|__POLARIS_AUTH_SHA256__|$POLARIS_AUTH_SHA256|g" \
+    "$file"
+done
+
 echo "[dwlle] Deploying DolphinScheduler, Polaris, and Trino"
+kubectl delete job polaris-setup -n dwlle --ignore-not-found
 kubectl apply -f "$WORK_DIR/manifests/service-account.yaml"
 kubectl apply -f "$WORK_DIR/manifests/dolphinscheduler.yaml"
 kubectl apply -f "$WORK_DIR/manifests/polaris.yaml"
@@ -57,7 +79,6 @@ kubectl rollout status deployment/dolphinscheduler -n dwlle --timeout=10m
 kubectl rollout status deployment/trino -n dwlle --timeout=10m
 
 echo "[dwlle] Initializing the Iceberg catalog"
-kubectl delete job polaris-setup -n dwlle --ignore-not-found
 kubectl apply -f "$WORK_DIR/manifests/polaris.yaml"
 kubectl wait --for=condition=complete job/polaris-setup -n dwlle --timeout=5m
 
