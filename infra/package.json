@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "tsc",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint . && prettier --check .",
     "test": "jest --runInBand",
     "synth": "cdk synth"
