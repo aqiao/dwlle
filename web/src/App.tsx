@@ -1,6 +1,9 @@
 import { useState } from 'react'
+import { AuthProvider } from './auth/AuthContext'
+import { useAuth } from './auth/useAuth'
 import { AppShell } from './components/AppShell'
 import { Icon } from './components/Icon'
+import { LoginPage } from './components/LoginPage'
 import type { PageId } from './types'
 import { Dashboard } from './pages/Dashboard'
 import { Solutions } from './pages/Solutions'
@@ -15,7 +18,8 @@ import { Assets } from './pages/Assets'
 import { DataSources } from './pages/DataSources'
 import { Integrations } from './pages/Integrations'
 
-export default function App() {
+function AuthenticatedApp() {
+  const { user, logout } = useAuth()
   const [page, setPage] = useState<PageId>('dashboard')
   const [workflowId, setWorkflowId] = useState('p-001')
   const [toast, setToast] = useState('')
@@ -72,10 +76,24 @@ export default function App() {
       content = <Dashboard onNavigate={setPage} />
   }
 
+  if (!user) return null
   return (
     <>
-      <AppShell activePage={page} onNavigate={setPage}>{content}</AppShell>
+      <AppShell activePage={page} onNavigate={setPage} user={user} onLogout={() => { void logout() }}>
+        {content}
+      </AppShell>
       {toast && <div className="toast" role="status"><span><Icon name="check" size={16} /></span>{toast}<button aria-label="关闭提示" onClick={() => setToast('')}><Icon name="close" size={15} /></button></div>}
     </>
   )
+}
+
+function AuthGate() {
+  const { loading, user, error, login } = useAuth()
+  if (loading) return <div className="auth-loading" role="status">正在验证身份…</div>
+  if (!user) return <LoginPage error={error} onLogin={() => { void login() }} />
+  return <AuthenticatedApp />
+}
+
+export default function App() {
+  return <AuthProvider><AuthGate /></AuthProvider>
 }

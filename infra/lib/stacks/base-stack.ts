@@ -6,6 +6,7 @@ import * as eks from "aws-cdk-lib/aws-eks";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import type { Construct } from "constructs";
 
 import type { EnvConfig } from "../config/types";
@@ -117,7 +118,7 @@ export class DwlleBaseStack extends cdk.Stack {
             },
             {
               apiGroups: [""],
-              resources: ["pods/exec"],
+              resources: ["pods/exec", "pods/portforward"],
               verbs: ["create"],
             },
             {
@@ -236,6 +237,31 @@ export class DwlleBaseStack extends cdk.Stack {
       credentials: rds.Credentials.fromGeneratedSecret("dwlleAdmin"),
     });
 
+    const keycloakAdminSecret = new secretsmanager.Secret(
+      this,
+      "KeycloakAdminSecret",
+      {
+        generateSecretString: {
+          secretStringTemplate: JSON.stringify({ username: "admin" }),
+          generateStringKey: "password",
+          excludePunctuation: true,
+        },
+        removalPolicy,
+      },
+    );
+    const keycloakAlphaUserSecret = new secretsmanager.Secret(
+      this,
+      "KeycloakAlphaUserSecret",
+      {
+        generateSecretString: {
+          secretStringTemplate: JSON.stringify({ username: "alpha-admin" }),
+          generateStringKey: "password",
+          excludePunctuation: true,
+        },
+        removalPolicy,
+      },
+    );
+
     const bastionRole = new iam.Role(this, "BastionRole", {
       assumedBy: new iam.ServicePrincipal(`ec2.${cdk.Aws.URL_SUFFIX}`),
       managedPolicies: [
@@ -248,6 +274,8 @@ export class DwlleBaseStack extends cdk.Stack {
     if (database.secret) {
       database.secret.grantRead(bastionRole);
     }
+    keycloakAdminSecret.grantRead(bastionRole);
+    keycloakAlphaUserSecret.grantRead(bastionRole);
     bastionRole.addToPolicy(
       new iam.PolicyStatement({
         actions: ["eks:DescribeCluster"],
@@ -300,6 +328,12 @@ export class DwlleBaseStack extends cdk.Stack {
     });
     new cdk.CfnOutput(this, "DatabaseSecretArn", {
       value: database.secret?.secretArn ?? "",
+    });
+    new cdk.CfnOutput(this, "KeycloakAdminSecretArn", {
+      value: keycloakAdminSecret.secretArn,
+    });
+    new cdk.CfnOutput(this, "KeycloakAlphaUserSecretArn", {
+      value: keycloakAlphaUserSecret.secretArn,
     });
     new cdk.CfnOutput(this, "StorageRoleArn", { value: storageRole.roleArn });
     cdk.Tags.of(this).add("Project", "dwlle");

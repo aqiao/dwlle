@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import type { CurrentUser } from '../auth/types'
 import type { PageId } from '../types'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
@@ -6,10 +7,12 @@ import { Topbar } from './Topbar'
 interface AppShellProps {
   activePage: PageId
   onNavigate: (page: PageId) => void
+  user: CurrentUser
+  onLogout: () => void
   children: ReactNode
 }
 
-export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
+export function AppShell({ activePage, onNavigate, user, onLogout, children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [workspace, setWorkspace] = useState('零售经营分析')
   const [environment, setEnvironment] = useState('生产环境')
@@ -22,7 +25,7 @@ export function AppShell({ activePage, onNavigate, children }: AppShellProps) {
   return (
     <div className="app-shell">
       {mobileOpen && <button className="sidebar-backdrop" aria-label="关闭导航" onClick={() => setMobileOpen(false)} />}
-      <Sidebar activePage={activePage} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} onNavigate={navigate} />
+      <Sidebar activePage={activePage} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} onNavigate={navigate} user={user} onLogout={onLogout} />
       <div className="main-frame">
         <Topbar
           workspace={workspace}

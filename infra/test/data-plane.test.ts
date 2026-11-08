@@ -9,7 +9,13 @@ function read(relativePath: string): string {
 
 describe("data plane deployment inputs", () => {
   test("manifests use immutable ECR images and no sensitive literals", () => {
-    for (const name of ["dolphinscheduler", "polaris", "trino", "seatunnel"]) {
+    for (const name of [
+      "dolphinscheduler",
+      "polaris",
+      "trino",
+      "seatunnel",
+      "keycloak",
+    ]) {
       const manifest = read(`deploy/aws/manifests/${name}.yaml`);
       expect(manifest).toMatch(/__REPOSITORY_URI__@__[A-Z]+_IMAGE_DIGEST__/);
       expect(manifest).not.toContain(":latest");
@@ -39,6 +45,7 @@ describe("data plane deployment inputs", () => {
       ["dolphinscheduler", ["__DS_CONFIG_SHA256__", "__RDS_SECRET_SHA256__"]],
       ["polaris", ["__POLARIS_CONFIG_SHA256__", "__POLARIS_AUTH_SHA256__"]],
       ["trino", ["__TRINO_CONFIG_SHA256__", "__POLARIS_AUTH_SHA256__"]],
+      ["keycloak", ["__KEYCLOAK_CONFIG_SHA256__", "__RDS_SECRET_SHA256__"]],
     ]);
     for (const [name, annotations] of expectedAnnotations) {
       const manifest = read(`deploy/aws/manifests/${name}.yaml`);
@@ -52,6 +59,25 @@ describe("data plane deployment inputs", () => {
     expect(remote.indexOf("kubectl delete job polaris-setup")).toBeLessThan(
       remote.indexOf("manifests/service-account.yaml"),
     );
+  });
+
+  test("Keycloak stays private and configures PKCE and API audience", () => {
+    const manifest = read("deploy/aws/manifests/keycloak.yaml");
+    const remote = read("deploy/aws/remote-data-plane.sh");
+    expect(manifest).toContain("type: ClusterIP");
+    expect(manifest).toContain("KC_DB_SCHEMA");
+    expect(manifest).toContain('args: ["start"]');
+    expect(manifest).toContain("type: Recreate");
+    expect(manifest).not.toContain("LoadBalancer");
+    expect(remote).toContain("CREATE SCHEMA IF NOT EXISTS keycloak");
+    expect(remote).toContain("registrationAllowed=false");
+    expect(remote).toContain("--query clientId=dwlle-web");
+    expect(remote).not.toContain("--fields id,clientId");
+    expect(remote).toContain('attributes."pkce.code.challenge.method"=S256');
+    expect(remote).toContain('config."included.custom.audience"=dwlle-api');
+    expect(remote).toContain("default-client-scopes");
+    expect(remote).toContain("directAccessGrantsEnabled=false");
+    expect(remote).toContain("rollout status deployment/keycloak");
   });
 
   test("artifact manifest contains pinned versions and SHA256 values", () => {

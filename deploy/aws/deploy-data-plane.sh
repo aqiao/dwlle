@@ -21,11 +21,14 @@ while IFS='|' read -r key value; do
     ClusterName) CLUSTER_NAME="$value" ;;
     BastionInstanceId) BASTION_INSTANCE_ID="$value" ;;
     DatabaseSecretArn) DATABASE_SECRET_ARN="$value" ;;
+    KeycloakAdminSecretArn) KEYCLOAK_ADMIN_SECRET_ARN="$value" ;;
+    KeycloakAlphaUserSecretArn) KEYCLOAK_ALPHA_USER_SECRET_ARN="$value" ;;
     StorageRoleArn) STORAGE_ROLE_ARN="$value" ;;
   esac
 done < <(OUTPUTS="$outputs" python3 -c 'import json,os; [print("|".join([x["OutputKey"],x["OutputValue"]])) for x in json.loads(os.environ["OUTPUTS"])]')
 : "${ARTIFACTS_BUCKET:?}" "${DATA_BUCKET:?}" "${REPOSITORY_NAME:?}"
 : "${CLUSTER_NAME:?}" "${BASTION_INSTANCE_ID:?}" "${DATABASE_SECRET_ARN:?}"
+: "${KEYCLOAK_ADMIN_SECRET_ARN:?}" "${KEYCLOAK_ALPHA_USER_SECRET_ARN:?}"
 : "${STORAGE_ROLE_ARN:?}"
 
 REPOSITORY_URI="$(aws ecr describe-repositories \
@@ -54,6 +57,7 @@ push_image dwlle/dolphinscheduler:3.4.3 ds-3.4.3
 push_image dwlle/seatunnel:3.0.0 seatunnel-3.0.0
 push_image trinodb/trino:484 trino-484
 push_image apache/polaris:1.8.0 polaris-1.8.0
+push_image quay.io/keycloak/keycloak:26.8.1 keycloak-26.8.1
 push_image alpine/curl:8.23.0 curl-8.23.0
 
 image_digest() {
@@ -66,6 +70,7 @@ DS_IMAGE_DIGEST="$(image_digest ds-3.4.3)"
 SEATUNNEL_IMAGE_DIGEST="$(image_digest seatunnel-3.0.0)"
 TRINO_IMAGE_DIGEST="$(image_digest trino-484)"
 POLARIS_IMAGE_DIGEST="$(image_digest polaris-1.8.0)"
+KEYCLOAK_IMAGE_DIGEST="$(image_digest keycloak-26.8.1)"
 CURL_IMAGE_DIGEST="$(image_digest curl-8.23.0)"
 
 echo "[dwlle] Uploading manifests and scripts"
@@ -74,8 +79,9 @@ aws s3 cp "$ROOT_DIR/artifacts/kubectl-v1.36.0-arm64" \
 aws s3 cp "$ROOT_DIR/deploy/aws/" "s3://$ARTIFACTS_BUCKET/deployment/" --recursive
 
 export ARTIFACTS_BUCKET DATA_BUCKET REPOSITORY_URI CLUSTER_NAME DATABASE_SECRET_ARN STORAGE_ROLE_ARN
-export DS_IMAGE_DIGEST SEATUNNEL_IMAGE_DIGEST TRINO_IMAGE_DIGEST POLARIS_IMAGE_DIGEST CURL_IMAGE_DIGEST
-commands="$(python3 -c 'import json,os; env=os.environ; names=["ARTIFACTS_BUCKET","DATA_BUCKET","REPOSITORY_URI","CLUSTER_NAME","AWS_REGION","DATABASE_SECRET_ARN","STORAGE_ROLE_ARN","DS_IMAGE_DIGEST","SEATUNNEL_IMAGE_DIGEST","TRINO_IMAGE_DIGEST","POLARIS_IMAGE_DIGEST","CURL_IMAGE_DIGEST"]; assignments=" ".join("{}={}".format(name,env[name]) for name in names); command=" && ".join(["aws s3 cp s3://{}/deployment/remote-data-plane.sh /tmp/dwlle-remote.sh".format(env["ARTIFACTS_BUCKET"]), "chmod 0755 /tmp/dwlle-remote.sh", assignments+" bash /tmp/dwlle-remote.sh"]); print(json.dumps({"commands":[command],"executionTimeout":["3600"]}))')"
+export KEYCLOAK_ADMIN_SECRET_ARN KEYCLOAK_ALPHA_USER_SECRET_ARN
+export DS_IMAGE_DIGEST SEATUNNEL_IMAGE_DIGEST TRINO_IMAGE_DIGEST POLARIS_IMAGE_DIGEST KEYCLOAK_IMAGE_DIGEST CURL_IMAGE_DIGEST
+commands="$(python3 -c 'import json,os; env=os.environ; names=["ARTIFACTS_BUCKET","DATA_BUCKET","REPOSITORY_URI","CLUSTER_NAME","AWS_REGION","DATABASE_SECRET_ARN","KEYCLOAK_ADMIN_SECRET_ARN","KEYCLOAK_ALPHA_USER_SECRET_ARN","STORAGE_ROLE_ARN","DS_IMAGE_DIGEST","SEATUNNEL_IMAGE_DIGEST","TRINO_IMAGE_DIGEST","POLARIS_IMAGE_DIGEST","KEYCLOAK_IMAGE_DIGEST","CURL_IMAGE_DIGEST"]; assignments=" ".join("{}={}".format(name,env[name]) for name in names); command=" && ".join(["aws s3 cp s3://{}/deployment/remote-data-plane.sh /tmp/dwlle-remote.sh".format(env["ARTIFACTS_BUCKET"]), "chmod 0755 /tmp/dwlle-remote.sh", assignments+" bash /tmp/dwlle-remote.sh"]); print(json.dumps({"commands":[command],"executionTimeout":["3600"]}))')"
 echo "[dwlle] Starting private deployment through SSM"
 command_id="$(aws ssm send-command \
   --instance-ids "$BASTION_INSTANCE_ID" \

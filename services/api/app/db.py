@@ -26,6 +26,6 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def init_db() -> None:
-    from app.models import run, scenario, workflow, workspace  # noqa: F401
+    from app.models import identity, run, scenario, workflow, workspace  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
