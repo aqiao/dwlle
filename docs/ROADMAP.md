@@ -1,63 +1,47 @@
 # 路线图
 
-当前基线：ADR-0009～0015 和 [2026 年 11 月内部 Alpha 计划](PROJECT_PLAN_2026-11.md)（2026-11-03）。
+当前基线：[架构设计](ARCHITECTURE.md)、ADR-0001～0017（含取代关系与各文件现行声明） 和 [阶段开发计划](PROJECT_PLAN.md)。
 
-> 原 StarRocks 存算一体路线已由 ADR-0009 取代，原 T001～T003 任务保留作历史记录，不再直接作为新平台实施任务。`phase1/` 是独立业务项目，不属于月底 Alpha 的代码基础或交付范围。
+> 原 StarRocks 存算一体路线已由 ADR-0009 取代，原 T001～T003 任务保留作历史记录，不再直接作为新平台实施任务。`phase1/` 是独立业务项目，不属于当前平台的代码基础或交付范围。
 
-## 当前优先：2026 年 11 月内部 Alpha
+## 阶段路线
 
-目标：在真实 AWS 账号中跑通“OIDC 登录 → 自研 DAG → SeaTunnel 接入 → Iceberg → Trino 转换/查询 → 质量检查 → DS 调度 → 资产/血缘/日志 → AI 只读诊断”。
+| 阶段 | 时间 | 目标 | 实施依据 |
+|---|---|---|---|
+| Alpha | 2026-11-01～2026-11-30 | 自研控制平面、DolphinScheduler 工作流、Trino 查询、基础质量检查与只读 AI 失败诊断 | [Alpha 开发计划](PROJECT_PLAN_ALPHA.md) |
+| Beta | 2026-12-01～2026-12-31 | SeaTunnel/Polaris 全流程、OpenMetadata 唯一权威血缘和端到端集成 | [Beta 开发计划](PROJECT_PLAN_BETA.md) |
+| Preview | 2027-01-01～2027-01-31 | 邀请制试运行、反馈处理、升级恢复、发布准备、网站与社区建设 | [Preview 开发计划](PROJECT_PLAN_PREVIEW.md) |
+| GA | 2027-02-01～2027-02-20 | 根据 Preview 验收证据完成上线评审 | Preview Go/No-Go 输出 |
 
-完整功能边界、资源前提和验收脚本见 [PROJECT_PLAN_2026-11.md](PROJECT_PLAN_2026-11.md)。
+详细 P0/P1、资源、里程碑、工作安排和验收以各阶段文档为准，本路线图不复制月度实施任务。
 
-### 资源前提
+## 跨阶段架构约束
 
-主计划按平台工程师和产品工程师各一名全职并行，设计/评审/验收约 0.2 人月。若仍只有每天约 2 小时，必须在 11-03 前选择降级演示目标或调整日期，不能默认承诺完整 P0。
+- 自研 SaaS 控制平面和全部客户界面，DS/OpenMetadata 原生 UI 仅限内部管理员。
+- dwlle Workflow 单向编译到 DS，不做定义双写。
+- DataSource、File、Dataset 统一使用 DataAsset 业务身份，并通过 DataAssetBinding 绑定环境资源。
+- OpenMetadata 是 LineageEdge 唯一权威存储，dwlle 缓存必须可重建。
+- dwlle 是 QualityRule/QualityResult 权威来源，Trino 执行 SQL 质量检查。
+- 部署不从公网下载，所有第三方组件进入版本与制品清单。
 
-### 里程碑
+## 后续候选方向
 
-| 里程碑 | 日期 | 目标 |
-|---|---|---|
-| M0：基线与选型冻结 | 11-03 | 新 ADR 已接受；Catalog、OIDC、模型选型确定；P0 冻结 |
-| M1：技术可行性打通 | 11-08 | 手动 JDBC → SeaTunnel → Iceberg → Trino 查询成功 |
-| M2：AWS 数据平面可部署 | 11-15 | EKS/RDS/S3/ECR 和核心组件可重复部署，OIDC 可用 |
-| M3：产品闭环可用 | 11-22 | 从自研 UI 创建、发布和运行标准 Workflow |
-| M4：功能冻结 | 11-25 | P0 完成，AI 只读诊断接入 |
-| M5：Alpha 验收 | 11-30 | 端到端、安全、隔离、恢复和重复部署验收通过 |
+以下能力不自动进入当前阶段 P0，须根据阶段验收和真实反馈单独评审：
 
-### 实施工作流
-
-| 工作流 | 主要内容 | 计划窗口 |
-|---|---|---|
-| 工程与制品 | monorepo 骨架、CI、`versions.json`、S3/ECR 制品 | 11-02～11-06 |
-| AWS 基础与数据平面 | CDK、EKS、RDS、S3、DS、SeaTunnel、Trino、Catalog | 11-03～11-15 |
-| 控制平面与身份 | FastAPI、PostgreSQL、OIDC、RBAC、审计、公共 REST、应用服务 | 11-04～11-15 |
-| 自研 UI 与分层模型 | Solution/Scenario 原型、DAG、组件 Schema、版本、DS 编译器 | 11-02～11-22 |
-| SQL、质量与资产 | Trino IDE、质量规则、Schema、表级血缘 | 11-16～11-22 |
-| 可观测性与 AI | 指标、日志、告警、失败上下文、只读诊断 | 11-09～11-25 |
-| 开放集成 | OpenAPI、Scope、只读 FastMCP（P1） | 11-16～11-25 |
-| 验收与发布 | 隔离、安全、恢复、成本、文档和回归 | 11-23～11-30 |
-
-每个工作流开始前必须拆成独立 `docs/tasks/Txxx-*.md`，使用下一可用任务编号；不得直接复用旧 StarRocks 任务。
-
-## Alpha 之后
-
-优先级由 Alpha 验收和真实客户反馈决定，暂不承诺具体日期：
-
-1. Scenario 跨 Workflow 数据契约、整体状态、SLA 和失败影响；
-2. Solution 安装向导、权限/基础设施绑定和版本升级；
-3. MCP 草稿与审批写操作、Webhook 和事件订阅；
-4. 跨账号/客户 VPC 部署和生产级高可用；
-5. 更多数据源、S3 文件接入和 Workflow 导入导出；
-6. 补数据、子工作流、复杂依赖等高级调度 UI；
-7. Superset、字段级血缘和更完整的数据治理；
-8. Spark/Flink/CDC、外部平台适配和审核后的共享市场；
-9. 经审批的低风险自动修复。
+1. Scenario 更完整的跨 Workflow 数据契约、SLA 和失败影响分析。
+2. Solution 实际安装、升级和公开共享市场。
+3. MCP 草稿与审批写操作、Webhook 和事件订阅。
+4. 跨账号/客户 VPC 部署、多区域和生产级高可用。
+5. 更多数据源、FileAsset 实际接入和字段级血缘。
+6. 补数据、子工作流和复杂依赖等高级调度 UI。
+7. Spark/Flink/CDC 和外部平台适配。
+8. 经审批的低风险自动修复。
 
 ## 每个任务的流程
 
-1. 设计方编写任务说明 `docs/tasks/Txxx-*.md`，明确范围和验收标准。
+1. 设计方编写任务说明 `docs/tasks/Txxxx-*.md`，明确所属阶段、范围和验收标准；历史 `Txxx-*.md` 文件不强制重命名。
 2. 编码 agent 阅读 AGENTS、现行架构、已接受 ADR 和任务说明。
-3. 在 `task/Txxx-简短描述` 分支上小步提交，提交信息使用英文并以 `Txxx:` 开头。
+3. 按[架构术语与规范](ARCHITECTURE.md#133-github-分支命名)创建任务分支并小步提交，提交信息使用英文并以 `Txxxx:` 开头；历史分支与任务文档中的旧格式不强制回填。
 4. 完成自动化测试、两分区 synth 和任务验收后，再进行代码评审。
 5. 涉及真实 AWS 的任务必须在目标账号部署验证；未实测项如实记录。
+6. 任务范围必须归属一个阶段；跨阶段依赖和未验收项在对应阶段计划中显式记录。
