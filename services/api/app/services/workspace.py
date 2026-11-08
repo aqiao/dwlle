@@ -1,7 +1,8 @@
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
+from app.models.identity import RoleBinding, User
 from app.models.workspace import Workspace
 from app.schemas.workspace import WorkspaceCreate
 
@@ -35,10 +36,23 @@ class WorkspaceService:
         self.db.refresh(workspace)
         return workspace
 
-    def list(self, tenant_id: str) -> list[Workspace]:
+    def list_for_user(self, actor: User) -> list[Workspace]:
         return list(
             self.db.scalars(
-                select(Workspace).where(Workspace.tenant_id == tenant_id).order_by(Workspace.name)
+                select(Workspace)
+                .join(
+                    RoleBinding,
+                    or_(
+                        RoleBinding.workspace_id == Workspace.id,
+                        and_(
+                            RoleBinding.workspace_id.is_(None),
+                            RoleBinding.tenant_id == Workspace.tenant_id,
+                        ),
+                    ),
+                )
+                .where(RoleBinding.user_id == actor.id)
+                .distinct()
+                .order_by(Workspace.name)
             ).all()
         )
 

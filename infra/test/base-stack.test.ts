@@ -30,6 +30,20 @@ describe("DwlleBaseStack", () => {
         EngineVersion: config.rdsEngineVersion,
         DBName: "dolphinscheduler",
       });
+      template.hasResourceProperties("AWS::SecretsManager::Secret", {
+        GenerateSecretString: {
+          SecretStringTemplate: JSON.stringify({ username: "admin" }),
+          GenerateStringKey: "password",
+        },
+      });
+      template.hasResourceProperties("AWS::SecretsManager::Secret", {
+        GenerateSecretString: {
+          SecretStringTemplate: JSON.stringify({ username: "alpha-admin" }),
+          GenerateStringKey: "password",
+        },
+      });
+      template.hasOutput("KeycloakAdminSecretArn", {});
+      template.hasOutput("KeycloakAlphaUserSecretArn", {});
       template.hasResourceProperties("AWS::EC2::Instance", {
         ImageId: config.bastionAmiId,
         InstanceType: config.bastionInstanceType,
@@ -40,6 +54,7 @@ describe("DwlleBaseStack", () => {
       });
       expect(json).toContain("dwlle-deployers");
       expect(json).toContain("pods/exec");
+      expect(json).toContain("pods/portforward");
       expect(json).not.toContain("system:masters");
 
       const ingressResources = template.findResources(

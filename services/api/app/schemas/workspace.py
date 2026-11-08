@@ -7,6 +7,7 @@ Environment = Literal["development", "test", "production"]
 
 
 class WorkspaceCreate(BaseModel):
+    tenant_id: str = Field(min_length=2, max_length=80)
     workspace_key: str = Field(pattern=r"^[a-z][a-z0-9-]*$", min_length=2, max_length=50)
     name: str = Field(min_length=2, max_length=80)
     description: str = Field(default="", max_length=500)

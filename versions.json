@@ -72,6 +72,14 @@
       "sha256": "0590c3155e0b7a3f276d94a6df4c1bf98143ece9fa407f0d6a190e32b8cc8f83"
     },
     {
+      "name": "keycloak-image",
+      "version": "26.8.1",
+      "reference": "quay.io/keycloak/keycloak:26.8.1",
+      "digest": "sha256:3f3c5f8e03c614774b4bd9173b88391fefa4153bfc010d8012d59ad825377332",
+      "filename": "keycloak-26.8.1.tar",
+      "sha256": "9a6b6ac11e8980e3c2c877fde477c003c90aa21629e9d4de57924546b3b35170"
+    },
+    {
       "name": "curl-image",
       "version": "8.23.0",
       "reference": "alpine/curl:8.23.0",

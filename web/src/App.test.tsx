@@ -2,11 +2,17 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import App from './App'
+import { jsonResponse, mockCurrentUser } from './test/setup'
+
+async function renderApp() {
+  render(<App />)
+  expect(await screen.findByRole('heading', { name: '工作台' })).toBeInTheDocument()
+}
 
 describe('dwlle UI prototype', () => {
   it('renders the dashboard and navigates to data sources', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    await renderApp()
 
     expect(screen.queryByText('早上好，陈默')).not.toBeInTheDocument()
     expect(screen.queryByText('AI 建议仅供辅助决策，不会自动执行')).not.toBeInTheDocument()
@@ -30,7 +36,7 @@ describe('dwlle UI prototype', () => {
 
   it('opens a workflow and publishes a new version', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    await renderApp()
 
     await user.click(screen.getByRole('button', { name: /^工作流$/ }))
     await user.click(screen.getByRole('button', { name: /业务库订单增量接入/ }))
@@ -46,7 +52,7 @@ describe('dwlle UI prototype', () => {
 
   it('shows read-only AI diagnosis for a failed run', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    await renderApp()
 
     await user.click(screen.getByRole('button', { name: /^运行中心/ }))
     expect(screen.getByText('AI 失败诊断')).toBeInTheDocument()
@@ -58,7 +64,7 @@ describe('dwlle UI prototype', () => {
 
   it('runs a SQL query and shows feedback', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    await renderApp()
 
     await user.click(screen.getByRole('button', { name: /^SQL 工作台$/ }))
     await user.click(screen.getByRole('button', { name: /运行查询/ }))
@@ -69,7 +75,7 @@ describe('dwlle UI prototype', () => {
 
   it('walks through solution installation and environment binding', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    await renderApp()
 
     await user.click(screen.getByRole('button', { name: /^解决方案$/ }))
     await user.click(screen.getByRole('button', { name: '安装解决方案' }))
@@ -87,7 +93,7 @@ describe('dwlle UI prototype', () => {
 
   it('navigates from a business scenario to its workflow', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    await renderApp()
 
     await user.click(screen.getByRole('button', { name: /^业务场景$/ }))
     expect(screen.getByText('跨 工作流 依赖')).toBeInTheDocument()
@@ -100,7 +106,7 @@ describe('dwlle UI prototype', () => {
 
   it('shows MCP tools and shared REST resources', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    await renderApp()
 
     await user.click(screen.getByRole('button', { name: '工作空间设置' }))
     expect(screen.getByText('FastMCP Server')).toBeInTheDocument()
@@ -112,7 +118,7 @@ describe('dwlle UI prototype', () => {
 
   it('keeps shared templates in the solution market', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    await renderApp()
 
     await user.click(screen.getByRole('button', { name: /^场景模板$/ }))
     expect(screen.getByRole('heading', { name: '场景模板' })).toBeInTheDocument()
@@ -123,7 +129,7 @@ describe('dwlle UI prototype', () => {
 
   it('links installed templates back to workspace instances', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    await renderApp()
 
     await user.click(screen.getByRole('button', { name: /^已安装与更新$/ }))
     expect(screen.getByText('模板更新不会直接覆盖你的实例')).toBeInTheDocument()
@@ -133,7 +139,7 @@ describe('dwlle UI prototype', () => {
 
   it('opens personal settings from the sidebar user area', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    await renderApp()
 
     await user.click(screen.getByRole('button', { name: '个人设置' }))
     expect(screen.getByRole('button', { name: '个人信息' })).toBeInTheDocument()
@@ -141,34 +147,57 @@ describe('dwlle UI prototype', () => {
     expect(screen.getByRole('button', { name: '退出登录' })).toBeInTheDocument()
   })
 
-  it('loads workspace options from the API', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [
-        {
-          id: 1,
-          tenant_id: 'tenant-a',
-          workspace_key: 'retail',
-          name: '零售经营分析',
-          description: '',
-          environment: 'production',
-          created_at: '2026-11-03T00:00:00',
-          updated_at: '2026-11-03T00:00:00',
-        },
-      ],
-    } as Response)
+  it('loads workspace options with a bearer token', async () => {
+    const workspace = {
+      id: 1,
+      tenant_id: 'tenant-a',
+      workspace_key: 'retail',
+      name: '零售经营分析',
+      description: '',
+      environment: 'production',
+      created_at: '2026-11-03T00:00:00',
+      updated_at: '2026-11-03T00:00:00',
+    }
+    vi.mocked(fetch).mockImplementation((input) => Promise.resolve(jsonResponse(
+      String(input).includes('/auth/me') ? mockCurrentUser : [workspace],
+    )))
 
-    render(<App />)
+    await renderApp()
 
     expect(await screen.findByRole('option', { name: '零售经营分析' })).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith('/api/v1/workspaces', {
+      headers: { Authorization: 'Bearer test-access-token' },
+    })
   })
 
   it('shows a clear fallback when the API is unavailable', async () => {
-    vi.mocked(fetch).mockRejectedValueOnce(new Error('offline'))
+    vi.mocked(fetch).mockImplementation((input) => (
+      String(input).includes('/auth/me')
+        ? Promise.resolve(jsonResponse(mockCurrentUser))
+        : Promise.reject(new Error('offline'))
+    ))
 
-    render(<App />)
+    await renderApp()
 
     expect(await screen.findByRole('alert')).toHaveTextContent('后端不可用，显示演示数据')
+  })
+
+  it('shows the OIDC login page when no session exists', async () => {
+    sessionStorage.clear()
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: '登录数据治理平台' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '通过 OIDC 登录' })).toBeInTheDocument()
+  })
+
+  it('clears the local session on logout', async () => {
+    const user = userEvent.setup()
+    await renderApp()
+    await user.click(screen.getByRole('button', { name: '个人设置' }))
+    await user.click(screen.getByRole('button', { name: '退出登录' }))
+
+    expect(await screen.findByRole('heading', { name: '登录数据治理平台' })).toBeInTheDocument()
+    expect(sessionStorage.length).toBe(0)
   })
 })

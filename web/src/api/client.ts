@@ -1,3 +1,6 @@
+import { getAccessToken } from '../auth/oidc'
+import type { CurrentUser } from '../auth/types'
+
 export interface Workspace {
   id: number
   tenant_id: string
@@ -10,13 +13,21 @@ export interface Workspace {
 }
 
 async function request<T>(path: string): Promise<T> {
+  const token = getAccessToken()
   const response = await fetch(`/api/v1${path}`, {
-    headers: { 'X-Tenant-Id': 'tenant-a' },
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
+  if (response.status === 401) {
+    window.dispatchEvent(new Event('dwlle:unauthorized'))
+  }
   if (!response.ok) {
     throw new Error(`API request failed with status ${response.status}`)
   }
   return response.json() as Promise<T>
+}
+
+export function getCurrentUser() {
+  return request<CurrentUser>('/auth/me')
 }
 
 export function listWorkspaces() {
