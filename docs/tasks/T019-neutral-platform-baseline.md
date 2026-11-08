@@ -13,7 +13,7 @@
 - 新建并接受 ADR-0010，明确客户可见界面全部由 dwlle 自研，DolphinScheduler 只作为后台执行引擎。
 - 更新被取代或部分取代的历史 ADR 状态，不删除历史记录。
 - 将 `ARCHITECTURE.md` 更新为唯一的现行架构文档。
-- 以 `PROJECT_PLAN_2026-11.md` 为月底交付计划，重写 `ROADMAP.md`。
+- 以阶段 Alpha 交付计划为基线，重写 `ROADMAP.md`；现行文档为 `PROJECT_PLAN_ALPHA.md`。
 - 更新 README 和文档索引。
 - 不修改 `phase1/`，不编写平台实现代码。
 

@@ -3,13 +3,13 @@
 本文件面向 Kimi Code 等编码 agent。动手前必须先读：
 1. `docs/ARCHITECTURE.md`
 2. `docs/adr/` 下所有状态为"已接受"的 ADR
-3. 当前要执行的任务说明 `docs/tasks/Txxx-*.md`
+3. 当前要执行的任务说明 `docs/tasks/Txxxx-*.md`（历史任务可为 `Txxx-*.md`）
 
 ## 1. 工作方式
 
 - **只做任务说明里写的范围。** 发现任务说明有缺陷、遗漏或与 ADR 冲突时，停下来，在交付说明里写出问题，不要自作主张。
 - **不得推翻 ADR。** 认为某条决策有问题时，在交付说明里提出，由设计方新建 ADR。
-- 一个任务对应一个分支：`task/Txxx-简短描述`。提交要小，提交信息用英文，格式为 `Txxx: <动词开头的描述>`。
+- 一个新任务对应一个新分支，分支类型与格式遵循 `docs/ARCHITECTURE.md` 的“术语与规范”：功能类 `feature/Txxxx-description`、文档类 `doc/Txxxx-description`、Bug 修复 `bugfix/Txxxx-description`、紧急修复 `hotfix/Txxxx-description`。`xxxx` 为四位数字任务编码，`description` 使用小写英文短横线。提交要小，提交信息用英文，格式为 `Txxxx: <动词开头的描述>`。历史分支与任务文档中的旧格式不强制回填。
 - 完成后逐条核对任务说明里的**验收标准**，并在交付说明中列出每一条的验证命令及输出摘要。未能验证的项要如实写明。
 
 ## 2. 仓库结构
@@ -93,7 +93,7 @@ npx cdk synth -c env=dev-cn
 ## 6. 交付说明模板
 
 ```
-## Txxx 交付说明
+## Txxxx 交付说明
 ### 完成内容
 ### 验收标准核对
 - [x] 标准 1 —— 验证命令 / 结果摘要

@@ -3,6 +3,8 @@
 状态：已接受
 日期：2026-11-02
 
+> 现行架构声明（2026-11-08）：独立 Iceberg REST Catalog 已选定为 Apache Polaris 1.8.0；OpenMetadata 2.0.5 作为 LineageEdge 唯一权威存储，见 ADR-0017。OIDC Broker 和首个模型提供方见 ADR-0016。Project/Pipeline 术语分别以 ADR-0014、0015 为准。原文“第一周”“月末 Alpha”等时间为历史决策背景，现行阶段范围和日期由架构阶段表及独立开发计划确定。
+
 ## 背景
 
 ADR-0001 选择只在客户 AWS 账号内部署，ADR-0002 选择 StarRocks 存算一体，ADR-0005 将 Agent 运行时绑定到 Bedrock AgentCore。这些决策降低了早期部署和运维复杂度，但不满足新的产品约束：
